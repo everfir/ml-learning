@@ -8,7 +8,7 @@
 
 推送到 `main` 后，GitHub Actions 执行仓库检查，并用 `pnpm build:pages` 将站点构建到 `dist-pages/`。每课使用独立的 `/<仓库名>/<实验 ID>/` 地址，飞书可以直接分享课程或章节的完整链接。课程目录和应用名称取自每课的 `lesson.json`。
 
-在线版使用 Vite 的代码分割与 `build.chunkImportMap`。浏览器需要支持原生 import maps 和 `import.meta.resolve`。Workbox 在首次联网打开后缓存当前课程；缓存完成后可以断网重新打开同一地址。课程内容更新时，关闭旧课程标签再打开即可使用已经下载的新版本。实验草稿和快照继续存入当前浏览器的 IndexedDB。
+在线版使用 Vite 的代码分割与 `build.chunkImportMap`。浏览器需要支持原生 import maps 和 `import.meta.resolve`。Workbox 在首次联网打开后缓存当前课程；缓存完成后可以断网重新打开同一地址。联网打开或普通刷新时，课程入口会向服务器重新验证 HTML，并检查离线版本更新。断网时使用最近完整缓存的版本。新版本在后台就绪后接管后续请求，当前实验可以继续。实验草稿和快照继续存入当前浏览器的 IndexedDB。
 
 ## 开始使用
 

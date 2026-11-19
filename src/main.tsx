@@ -11,7 +11,14 @@ const app = createRoot(root);
 void import("@experiment").then(({ default: Experiment }) => app.render(<Experiment />));
 
 if (__PAGES_BUILD__ && "serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch((error: unknown) => {
-    console.warn("课程离线缓存未能启用", error);
-  });
+  navigator.serviceWorker
+    .register("./sw.js", { updateViaCache: "none" })
+    .then((registration) => {
+      if (registration.active && navigator.onLine) {
+        return registration.update();
+      }
+    })
+    .catch((error: unknown) => {
+      console.debug("本次未能检查或安装课程离线缓存", error);
+    });
 }

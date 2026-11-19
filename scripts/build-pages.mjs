@@ -1,7 +1,7 @@
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { build } from "vite";
-import { generateSW } from "workbox-build";
+import { getManifest } from "workbox-build";
 import { config } from "../vite.config.mjs";
 import { lessons, root, select } from "./experiments.mjs";
 
@@ -34,9 +34,8 @@ for (const id of await select()) {
     icons,
   };
   await writeFile(path.join(dir, "manifest.webmanifest"), JSON.stringify(manifest));
-  const { warnings } = await generateSW({
+  const { manifestEntries, warnings } = await getManifest({
     globDirectory: dir,
-    swDest: path.join(dir, "sw.js"),
     globPatterns: [
       "index.html",
       "importmap.json",
@@ -45,11 +44,22 @@ for (const id of await select()) {
       "assets/**/*",
     ],
     dontCacheBustURLsMatching: /^assets\/.+-[\w-]{8,}\.[\w.]+$/,
-    sourcemap: false,
-    clientsClaim: true,
-    cleanupOutdatedCaches: true,
   });
   if (warnings.length) throw new Error(warnings.join("\n"));
+  await build({
+    configFile: false,
+    publicDir: false,
+    define: { "self.__WB_MANIFEST": JSON.stringify(manifestEntries) },
+    build: {
+      target: "es2022",
+      outDir: dir,
+      emptyOutDir: false,
+      rolldownOptions: {
+        input: path.join(root, "pages/lesson-sw.js"),
+        output: { format: "iife", entryFileNames: "sw.js" },
+      },
+    },
+  });
   const label = title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
   links.push({
     order: number ?? Infinity,

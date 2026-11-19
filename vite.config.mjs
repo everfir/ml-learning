@@ -5,12 +5,12 @@ import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { lessons, root, validateId } from "./scripts/experiments.mjs";
 
-export function config(id) {
+export function config(id, { pages = false } = {}) {
   validateId(id);
   const folder = path.join(lessons, id);
   return {
     root,
-    define: { __EXPERIMENT_ID__: JSON.stringify(id) },
+    define: { __EXPERIMENT_ID__: JSON.stringify(id), __PAGES_BUILD__: pages },
     base: "./",
     publicDir: false,
     resolve: {
@@ -20,7 +20,7 @@ export function config(id) {
       { enforce: "pre", ...mdx() },
       react(),
       tailwind(),
-      viteSingleFile(),
+      !pages && viteSingleFile(),
       {
         name: "experiment-boundaries",
         enforce: "pre",
@@ -38,9 +38,14 @@ export function config(id) {
         },
       },
       {
-        name: "offline-policy",
+        name: "lesson-html",
         apply: "build",
         transformIndexHtml(html) {
+          if (pages)
+            return html.replace(
+              "<!-- offline-policy -->",
+              '<link rel="manifest" href="./manifest.webmanifest">',
+            );
           const policy =
             "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; worker-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'";
           return html.replace(
@@ -52,7 +57,8 @@ export function config(id) {
     ],
     build: {
       target: "es2022",
-      outDir: path.join(root, "dist", id),
+      chunkImportMap: pages,
+      outDir: path.join(root, pages ? "dist-pages" : "dist", id),
       emptyOutDir: true,
       reportCompressedSize: false,
       chunkSizeWarningLimit: 1600,

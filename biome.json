@@ -1,5 +1,14 @@
 {
-  "files": { "includes": ["**", "!!.impeccable", "!!dist", "!!node_modules", "!!pnpm-lock.yaml"] },
+  "files": {
+    "includes": [
+      "**",
+      "!!.impeccable",
+      "!!dist",
+      "!!dist-pages",
+      "!!node_modules",
+      "!!pnpm-lock.yaml"
+    ]
+  },
   "formatter": { "enabled": true, "indentStyle": "space", "lineWidth": 100 },
   "linter": { "enabled": true, "rules": { "preset": "recommended" } },
   "css": {

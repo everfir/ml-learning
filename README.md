@@ -2,6 +2,14 @@
 
 每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。另有独立的单神经元模板演示。两者均支持 MDX 对照阅读和本地实验记录。
 
+[在线课程目录](https://everfir.github.io/ml-learning/) · [第一课：让机器从例子里找规律](https://everfir.github.io/ml-learning/fruit-sorting/) · [单神经元演示](https://everfir.github.io/ml-learning/neuron/)
+
+## GitHub Pages 发布
+
+推送到 `main` 后，GitHub Actions 执行仓库检查，并用 `pnpm build:pages` 将站点构建到 `dist-pages/`。每课使用独立的 `/<仓库名>/<实验 ID>/` 地址，飞书可以直接分享课程或章节的完整链接。课程目录和应用名称取自每课的 `lesson.json`。
+
+在线版使用 Vite 的代码分割与 `build.chunkImportMap`。浏览器需要支持原生 import maps 和 `import.meta.resolve`。Workbox 在首次联网打开后缓存当前课程；缓存完成后可以断网重新打开同一地址。课程内容更新时，关闭旧课程标签再打开即可使用已经下载的新版本。实验草稿和快照继续存入当前浏览器的 IndexedDB。
+
 ## 开始使用
 
 使用 Node.js 22.13+ 和 pnpm 10。项目级 `.npmrc` 已配置 npmmirror。
@@ -23,7 +31,7 @@ pnpm dev gradient-descent
 pnpm build gradient-descent
 ```
 
-编辑生成的 `src/experiments/gradient-descent/`。每课有五份同名 MDX，顺序由共享壳层固定。默认打开工作台。
+编辑生成的 `src/experiments/gradient-descent/`，在 `lesson.json` 填写课程名称。每课有五份同名 MDX，顺序由共享壳层固定。默认打开工作台。
 
 | 章节文件           | 作者要回答的问题                             |
 | ------------------ | -------------------------------------------- |

@@ -4,6 +4,7 @@ import { LabShell } from "@/shared/LabShell";
 import { guideHref, lessonHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
 import { documents } from "./documents";
+import lesson from "./lesson.json";
 import { batch, bins, predict, type Session, start, type Trial } from "./model";
 import { SampleMap } from "./SampleMap";
 import photo from "./sorting.jpg";
@@ -91,7 +92,7 @@ export default function Experiment() {
   const tally = score(s.trials);
   return (
     <LabShell
-      title="让机器从例子里找规律"
+      title={lesson.title}
       code="01"
       topic="机器学习入门"
       description="接手一条柑橘分拣线：从品控员尝过的果子中找线索，为下一颗选一个箱。"

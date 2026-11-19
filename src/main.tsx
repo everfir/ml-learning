@@ -1,4 +1,3 @@
-import Experiment from "@experiment";
 import { createRoot } from "react-dom/client";
 
 const root = document.getElementById("root");
@@ -8,4 +7,11 @@ root.addEventListener("dragstart", (event) => {
     event.preventDefault();
   }
 });
-createRoot(root).render(<Experiment />);
+const app = createRoot(root);
+void import("@experiment").then(({ default: Experiment }) => app.render(<Experiment />));
+
+if (__PAGES_BUILD__ && "serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch((error: unknown) => {
+    console.warn("课程离线缓存未能启用", error);
+  });
+}

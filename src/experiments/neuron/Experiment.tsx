@@ -4,6 +4,7 @@ import { guideHref, lessonHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
 import { Controls } from "./Controls";
 import { documents } from "./documents";
+import lesson from "./lesson.json";
 import { fixed, forward } from "./model";
 import { Response } from "./Response";
 import { useNotebook } from "./useNotebook";
@@ -19,7 +20,7 @@ export default function Experiment() {
   const { p, change, records, save, ready, saving, notice } = useNotebook();
   return (
     <LabShell
-      title="单个神经元与激活函数"
+      title={lesson.title}
       code="01"
       topic="神经网络基础"
       description="调节输入、权重和偏置，观察一个神经元如何将信号转化为输出。"

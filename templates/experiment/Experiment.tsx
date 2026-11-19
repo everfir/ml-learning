@@ -1,10 +1,11 @@
 import { LabShell } from "@/shared/LabShell";
 import { documents } from "./documents";
+import lesson from "./lesson.json";
 import "./style.css";
 export default function Experiment() {
   return (
     <LabShell
-      title="__ID__"
+      title={lesson.title}
       code="—"
       topic="实验"
       description="在这里写下本课要验证的问题。"

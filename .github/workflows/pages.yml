@@ -23,7 +23,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-      - run: pnpm build:pages
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist-pages

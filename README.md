@@ -1,12 +1,12 @@
 # 梯度实验室
 
-每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。第二课在模拟果园里手动调线、逐步训练，再抽新果验收。第三课用礼盒订单检验一条线的限制，让读者组合两道筛。另有独立的单神经元模板演示。每课均支持 MDX 对照阅读和本地实验记录。
+每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。第二课在模拟果园里手动调线、逐步训练，再抽新果验收。第三课用礼盒订单检验一条线的限制，让读者组合两道筛。第四课从拼色礼盒订单学习决策树。另有独立的单神经元模板演示。每课均支持 MDX 对照阅读和本地实验记录。
 
-[在线课程目录](https://everfir.github.io/ml-learning/) · [第一课：让机器从例子里找规律](https://everfir.github.io/ml-learning/fruit-sorting/) · [第二课：让机器自己调好一条分箱线](https://everfir.github.io/ml-learning/fruit-boundary/) · [第三课：一条直线什么时候不够用？](https://everfir.github.io/ml-learning/gift-sorting/) · [单神经元演示](https://everfir.github.io/ml-learning/neuron/)
+[在线课程目录](https://everfir.github.io/ml-learning/) · [第一课：让机器从例子里找规律](https://everfir.github.io/ml-learning/fruit-sorting/) · [第二课：让机器自己调好一条分箱线](https://everfir.github.io/ml-learning/fruit-boundary/) · [第三课：一条直线什么时候不够用？](https://everfir.github.io/ml-learning/gift-sorting/) · [第四课：同样大的橘子，为什么要分开？](https://everfir.github.io/ml-learning/fruit-tree/) · [单神经元演示](https://everfir.github.io/ml-learning/neuron/)
 
 ## GitHub Pages 发布
 
-推送到 `main` 后，GitHub Actions 执行仓库检查，并用 `pnpm build:pages` 将站点构建到 `dist-pages/`。每课使用独立的 `/<仓库名>/<实验 ID>/` 地址，飞书可以直接分享课程或章节的完整链接。课程目录和应用名称取自每课的 `lesson.json`。
+推送到 `main` 后，GitHub Actions 执行仓库检查，其中的 `pnpm build` 将站点构建到 `dist-pages/`。每课使用独立的 `/<仓库名>/<实验 ID>/` 地址，飞书可以直接分享课程或章节的完整链接。课程目录和应用名称取自每课的 `lesson.json`。
 
 在线版使用 Vite 的代码分割与 `build.chunkImportMap`。浏览器需要支持原生 import maps 和 `import.meta.resolve`。Workbox 在首次联网打开后缓存当前课程；缓存完成后可以断网重新打开同一地址。联网打开或普通刷新时，课程入口会向服务器重新验证 HTML，并检查离线版本更新。断网时使用最近完整缓存的版本。新版本在后台就绪后接管后续请求，当前实验可以继续。实验草稿和快照继续存入当前浏览器的 IndexedDB。
 
@@ -21,7 +21,7 @@ pnpm build fruit-sorting
 pnpm check
 ```
 
-以上命令打开和打包入门第一课。`pnpm dev neuron` 可打开单神经元演示，也是省略实验 ID 时的默认入口。双击 `dist/fruit-sorting/index.html` 即可离线使用，也可将这一个文件重命名后分享。文件大小指未压缩的实际交付体积。接收平台需要允许运行 HTML 内联 JavaScript。
+单课构建写入 `dist-pages/fruit-sorting/`，完整检查还会构建线上课程目录。`pnpm dev neuron` 可打开单神经元演示，也是省略实验 ID 时的默认入口。如需单文件，执行 `pnpm build:single fruit-sorting`，然后双击 `dist/fruit-sorting/index.html` 即可离线使用，也可将这一个文件重命名后分享。文件大小指未压缩的实际交付体积。接收平台需要允许运行 HTML 内联 JavaScript。
 
 ## 新增教材
 
@@ -49,7 +49,7 @@ pnpm build gradient-descent
 
 React 控件使用 `guideHref("theory", "weights")` 生成对照链接。在 MDX 中使用 `<Jump section="theory" anchor="weights">权重</Jump>`，链接在发起阅读的一侧跳转。Lint 检查五份文件、重复段落 ID 和 MDX Jump 目标。
 
-`pnpm build` 对所有实验逐个调用 Vite。单项构建仅刷新对应的 `dist/<id>/`。依赖图从一个入口出发，所有运行所需资源内联。构建脚本检查输出目录内只有一个 HTML 文件。产物的 CSP 阻止运行期网络连接。修改共享代码会更新使用它的实验；每份离线文件都带有自己所需的共享代码副本。
+`pnpm build` 生成完整 Pages 站点；`pnpm build <id>` 只更新该课的线上目录。按需执行 `pnpm build:single <id>` 时，所有运行所需资源内联到 `dist/<id>/index.html`。构建脚本检查输出目录内只有一个 HTML 文件。产物的 CSP 阻止运行期网络连接。修改共享代码会更新使用它的实验；每份离线文件都带有自己所需的共享代码副本。
 
 ## 共享能力
 
@@ -74,6 +74,6 @@ React 控件使用 `guideHref("theory", "weights")` 生成对照链接。在 MDX
 
 `pnpm lint` 执行 Biome 源码和格式检查、Stylelint 样式检查、MDX 编译和 remark 规则，再检查共享层与实验的导入边界。`pnpm typecheck` 执行严格 TypeScript 检查；MDX 中的组件调用由 MDX 编译和实际运行验证。
 
-`pnpm check` 加上数值测试、TF.js CPU 张量释放测试、全量构建和隔离回归。隔离测试在临时目录生成第二个实验，引入 TF.js 和私有样式，再比较首课 HTML 的 SHA-256，并验证跨实验导入会失败。可单独运行 `pnpm test:isolation`。
+`pnpm check` 加上数值测试、TF.js CPU 张量释放测试、全量构建和隔离回归。隔离测试在临时目录生成第二个实验，引入 TF.js 和私有样式，再比较神经元课完整 Pages 目录的 SHA-256，并验证跨实验导入会失败。可单独运行 `pnpm test:isolation`。
 
 视觉和作者约定见 [AGENTS.md](AGENTS.md)。后续如接入在线答疑，需要另行定义联网入口、凭证和允许发送的上下文，离线版本可沿用现有正文定位。

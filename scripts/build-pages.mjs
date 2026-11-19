@@ -6,10 +6,12 @@ import { config } from "../vite.config.mjs";
 import { lessons, root, select } from "./experiments.mjs";
 
 const site = path.join(root, "dist-pages");
-await rm(site, { recursive: true, force: true });
-await mkdir(site);
+const requested = process.argv[2];
+const ids = await select(requested);
+if (!requested) await rm(site, { recursive: true, force: true });
+await mkdir(site, { recursive: true });
 const links = [];
-for (const id of await select()) {
+for (const id of ids) {
   const { title, number } = JSON.parse(
     await readFile(path.join(lessons, id, "lesson.json"), "utf8"),
   );
@@ -66,14 +68,17 @@ for (const id of await select()) {
     html: `<li><a href="./${id}/">${number ? `第 ${number} 课 · ` : ""}${label}</a></li>`,
   });
 }
-const catalog = await readFile(path.join(root, "pages/index.html"), "utf8");
-await writeFile(
-  path.join(site, "index.html"),
-  catalog.replace(
-    "<!-- lessons -->",
-    links
-      .sort((a, b) => a.order - b.order)
-      .map((link) => link.html)
-      .join("\n"),
-  ),
-);
+// A targeted build only updates its own lesson directory.
+if (!requested) {
+  const catalog = await readFile(path.join(root, "pages/index.html"), "utf8");
+  await writeFile(
+    path.join(site, "index.html"),
+    catalog.replace(
+      "<!-- lessons -->",
+      links
+        .sort((a, b) => a.order - b.order)
+        .map((link) => link.html)
+        .join("\n"),
+    ),
+  );
+}

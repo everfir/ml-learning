@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/build-pages.mjs",
+    "build:single": "node scripts/build.mjs",
     "new": "node scripts/new.mjs",
     "lint": "biome check . && stylelint \"{src,templates}/**/*.css\" && node --experimental-strip-types scripts/lint-lessons.mjs && node scripts/lint-boundaries.mjs",
     "typecheck": "tsc --noEmit",

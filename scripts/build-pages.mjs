@@ -10,7 +10,9 @@ await rm(site, { recursive: true, force: true });
 await mkdir(site);
 const links = [];
 for (const id of await select()) {
-  const { title } = JSON.parse(await readFile(path.join(lessons, id, "lesson.json"), "utf8"));
+  const { title, number } = JSON.parse(
+    await readFile(path.join(lessons, id, "lesson.json"), "utf8"),
+  );
   await build({ ...config(id, { pages: true }), configFile: false });
   const dir = path.join(site, id);
   const icons = [];
@@ -49,10 +51,19 @@ for (const id of await select()) {
   });
   if (warnings.length) throw new Error(warnings.join("\n"));
   const label = title.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-  links.push(`<li><a href="./${id}/">${label}</a></li>`);
+  links.push({
+    order: number ?? Infinity,
+    html: `<li><a href="./${id}/">${number ? `第 ${number} 课 · ` : ""}${label}</a></li>`,
+  });
 }
 const catalog = await readFile(path.join(root, "pages/index.html"), "utf8");
 await writeFile(
   path.join(site, "index.html"),
-  catalog.replace("<!-- lessons -->", links.join("\n")),
+  catalog.replace(
+    "<!-- lessons -->",
+    links
+      .sort((a, b) => a.order - b.order)
+      .map((link) => link.html)
+      .join("\n"),
+  ),
 );

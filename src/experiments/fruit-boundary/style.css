@@ -1,0 +1,252 @@
+@import "../../shared/theme.css";
+
+@source "./";
+@source "../../shared/ui/button.tsx";
+
+.b-stages,
+.b-actions,
+.b-legend,
+.b-read,
+.b-record,
+.b-stats,
+.b-loss small {
+  display: flex;
+  align-items: center;
+}
+
+.b-stages {
+  gap: clamp(12px, 3vw, 40px);
+  padding: 0 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.b-stages b {
+  font: 12px var(--mono);
+  margin-inline-end: 6px;
+}
+
+.b-stages li[aria-current] {
+  color: #94401a;
+  font-weight: 650;
+}
+
+.b-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.b-legend,
+.b-actions {
+  flex-wrap: wrap;
+  gap: 8px 15px;
+}
+
+.b-legend {
+  padding: 13px 20px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.b-fresh {
+  color: #994619;
+}
+
+.b-juice {
+  color: #10655f;
+}
+
+.boundary-map {
+  display: block;
+  width: 100%;
+}
+
+.boundary-map text {
+  fill: var(--muted);
+  font: 13px var(--mono);
+}
+
+.b-grid {
+  stroke: #cdd6d5;
+  stroke-dasharray: 3 4;
+}
+
+.b-error {
+  stroke: #414a51;
+  stroke-width: 1.2;
+  fill: none;
+  stroke-dasharray: 2 2;
+}
+
+.b-grip {
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.b-pick {
+  cursor: pointer;
+}
+
+.b-inspector {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.b-controls {
+  display: grid;
+  gap: 14px;
+  padding: 16px 20px 20px;
+}
+
+.b-inspector p,
+.b-controls p,
+.b-record p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.b-controls > button {
+  justify-self: start;
+}
+
+.b-stats {
+  gap: 25px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.b-stats strong {
+  display: block;
+  color: var(--ink);
+  font: 600 27px / 1.3 var(--mono);
+}
+
+.b-stats small {
+  font:
+    14px system-ui,
+    sans-serif;
+}
+
+.b-range,
+.b-example label {
+  display: block;
+  font-size: 14px;
+}
+
+.b-range output {
+  float: right;
+  font-family: var(--mono);
+}
+
+.b-range input {
+  width: 100%;
+  accent-color: #a4431f;
+  display: block;
+  margin-top: 7px;
+}
+
+.b-example,
+.b-feedback {
+  padding: 10px 13px;
+  background: var(--surface);
+  border-inline-start: 2px solid var(--grid);
+  font-size: 14px;
+}
+
+.b-example .b-actions,
+.b-example label {
+  margin-top: 7px;
+}
+
+.b-read {
+  gap: 5px;
+  color: #94401a;
+  font-size: 13px;
+}
+
+.b-read:hover {
+  text-decoration: underline;
+}
+
+.b-inspector label {
+  font-size: 14px;
+}
+
+.boundary-lab select {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+
+.b-inspector label + p {
+  margin-top: 8px;
+}
+
+.b-loss {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.b-loss strong {
+  float: right;
+  font-family: var(--mono);
+}
+
+.b-loss svg {
+  display: block;
+  width: 100%;
+  height: 65px;
+}
+
+.b-loss small,
+.b-record {
+  justify-content: space-between;
+}
+
+.b-table {
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.b-table caption {
+  text-align: left;
+  font-weight: 650;
+}
+
+.b-table td,
+.b-table th {
+  padding: 9px 3px;
+  border-bottom: 1px solid var(--border);
+}
+
+.b-record {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+@media (width <= 810px) {
+  .b-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .b-stages {
+    font-size: 13px;
+    gap: 12px;
+  }
+
+  .b-stages b {
+    font-size: 11px;
+    margin-inline-end: 3px;
+  }
+}

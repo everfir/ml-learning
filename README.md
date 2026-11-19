@@ -31,7 +31,7 @@ pnpm dev gradient-descent
 pnpm build gradient-descent
 ```
 
-编辑生成的 `src/experiments/gradient-descent/`，在 `lesson.json` 填写课程名称。每课有五份同名 MDX，顺序由共享壳层固定。默认打开工作台。
+编辑生成的 `src/experiments/gradient-descent/`，在 `lesson.json` 填写课程名称。每课有五份同名 MDX，顺序由共享壳层固定。打开课程入口时从前言开始，章节直链进入对应章节。
 
 | 章节文件           | 作者要回答的问题                             |
 | ------------------ | -------------------------------------------- |
@@ -45,7 +45,7 @@ pnpm build gradient-descent
 
 ### 给正文和资料侧栏定位
 
-段落用 `<Heading id="weights">输入、权重与偏置</Heading>` 标记。地址格式是 `#/<实验>/<正文章节>[/段落]?guide=<讲解章节>[/段落]`，HTTP 和本地 HTML 均可使用。例如 `#/neuron/workbench?guide=theory/weights` 会保留工作台并打开权重讲解。标题旁的链接可复制当前段落地址。
+段落用 `<Heading id="weights">输入、权重与偏置</Heading>` 标记。地址格式是 `#/<正文章节>[/段落]?guide=<讲解章节>[/段落]`，HTTP 和本地 HTML 均可使用。例如 `#/workbench?guide=theory/weights` 会保留工作台并打开权重讲解。标题旁的链接可复制当前段落地址。旧版带实验 ID 的链接仍可使用。
 
 React 控件使用 `guideHref("theory", "weights")` 生成对照链接。在 MDX 中使用 `<Jump section="theory" anchor="weights">权重</Jump>`，链接在发起阅读的一侧跳转。Lint 检查五份文件、重复段落 ID 和 MDX Jump 目标。
 

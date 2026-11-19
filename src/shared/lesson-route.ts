@@ -9,7 +9,7 @@ export const labels: Record<Section, string> = {
 };
 export type Destination = { section: Section; anchor?: string };
 export type LessonRoute = { page: Destination; guide?: Destination };
-const start: Destination = { section: "workbench" };
+const start: Destination = { section: "introduction" };
 function destination(path: string): Destination | undefined {
   const [section, anchor, ...rest] = path.split("/");
   if (
@@ -23,11 +23,14 @@ function destination(path: string): Destination | undefined {
 export function isInteractive(section: Section) {
   return section === "workbench" || section === "records";
 }
+export function shortLessonHash(hash: string, id: string) {
+  const legacyPrefix = `#/${id}/`;
+  return hash.startsWith(legacyPrefix) ? `#/${hash.slice(legacyPrefix.length)}` : hash;
+}
 export function parseRoute(hash: string, id: string): LessonRoute {
-  const [path, query] = hash.split("?");
-  const prefix = `#/${id}/`;
-  if (!path.startsWith(prefix)) return { page: start };
-  const page = destination(path.slice(prefix.length));
+  const [path, query] = shortLessonHash(hash, id).split("?");
+  if (!path.startsWith("#/")) return { page: start };
+  const page = destination(path.slice(2));
   if (!page) return { page: start };
   const guide = destination(new URLSearchParams(query).get("guide") ?? "");
   if (page.anchor && isInteractive(page.section)) {
@@ -38,8 +41,8 @@ export function parseRoute(hash: string, id: string): LessonRoute {
 function targetPath({ section, anchor }: Destination) {
   return anchor ? `${section}/${anchor}` : section;
 }
-export function lessonHref(page: Destination, guide?: Destination, id = __EXPERIMENT_ID__) {
-  return `#/${id}/${targetPath(page)}${guide ? `?guide=${targetPath(guide)}` : ""}`;
+export function lessonHref(page: Destination, guide?: Destination) {
+  return `#/${targetPath(page)}${guide ? `?guide=${targetPath(guide)}` : ""}`;
 }
 export function guideHref(section: Section, anchor?: string) {
   return lessonHref(parseRoute(location.hash, __EXPERIMENT_ID__).page, { section, anchor });

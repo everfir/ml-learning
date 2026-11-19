@@ -11,7 +11,14 @@ import { type ReactNode, useEffect, useLayoutEffect, useRef, useSyncExternalStor
 import mark from "./assets/gradient-mark.png";
 import { GuidePanel } from "./GuidePanel";
 import { LessonDocument, type LessonDocuments } from "./LessonDocument";
-import { isInteractive, labels, lessonHref, parseRoute, sections } from "./lesson-route";
+import {
+  isInteractive,
+  labels,
+  lessonHref,
+  parseRoute,
+  sections,
+  shortLessonHash,
+} from "./lesson-route";
 import { Button } from "./ui/button";
 
 const icons = {
@@ -41,11 +48,7 @@ function followLessonLink(event: MouseEvent) {
     return;
   const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
   const hash = link?.getAttribute("href");
-  if (
-    !hash?.startsWith(`#/${__EXPERIMENT_ID__}/`) ||
-    link?.hasAttribute("target") ||
-    link?.hasAttribute("download")
-  )
+  if (!hash?.startsWith("#/") || link?.hasAttribute("target") || link?.hasAttribute("download"))
     return;
 
   // In srcdoc, a relative href can resolve against the preview host's URL.
@@ -82,6 +85,16 @@ export function LabShell({
   const section = page.section;
   const interactive = isInteractive(section);
   const previous = useRef(section);
+  useEffect(() => {
+    const short = shortLessonHash(hash, __EXPERIMENT_ID__);
+    if (short === hash) return;
+    try {
+      window.history.replaceState(window.history.state, "", short);
+    } catch (error) {
+      // Sandboxed previews may render the legacy link without allowing URL edits.
+      if (!(error instanceof DOMException && error.name === "SecurityError")) throw error;
+    }
+  }, [hash]);
   useEffect(() => {
     document.addEventListener("click", followLessonLink);
     return () => document.removeEventListener("click", followLessonLink);

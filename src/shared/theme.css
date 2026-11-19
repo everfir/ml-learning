@@ -249,8 +249,6 @@ button:disabled {
 }
 
 .reading-page {
-  max-width: 50rem;
-  margin-inline: auto;
   padding-block: clamp(8px, 1.4vw, 20px) 26px;
 }
 

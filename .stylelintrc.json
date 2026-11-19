@@ -1,0 +1,15 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["theme", "source", "apply", "custom-variant"]
+      }
+    ],
+    "import-notation": "string",
+    "at-rule-prelude-no-invalid": null,
+    "selector-class-pattern": "^[a-z][a-z0-9-]*$",
+    "no-descending-specificity": null
+  }
+}

@@ -1,0 +1,509 @@
+@import "tailwindcss" source(none);
+
+@theme inline {
+  --color-primary: var(--ink);
+  --color-primary-foreground: white;
+  --color-background: white;
+  --color-accent: #f0f2f3;
+  --color-accent-foreground: var(--ink);
+  --color-ring: #bf4d20;
+  --color-border: var(--border);
+  --color-muted-foreground: var(--muted);
+}
+
+:root {
+  --ink: #20262a;
+  --muted: #58636a;
+  --border: #d9dfe1;
+  --signal: #de652e;
+  --grid: #dce1e4;
+  --surface: #f6f7f8;
+  --mono: "SFMono-Regular", consolas, "Liberation Mono", monospace;
+
+  font-family:
+    Inter, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--ink);
+  background: var(--surface);
+  font-synthesis: none;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  user-select: none;
+}
+
+.lesson-prose,
+[data-selectable],
+textarea,
+input:not([type]),
+input:is(
+  [type="text"],
+  [type="search"],
+  [type="email"],
+  [type="url"],
+  [type="tel"],
+  [type="password"],
+  [type="number"]
+),
+[contenteditable]:not([contenteditable="false"]) {
+  user-select: text;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.shell {
+  width: min(1240px, calc(100% - clamp(36px, 9vw, 144px)));
+  margin-inline: auto;
+}
+
+.panel {
+  min-width: 0;
+  overflow: hidden;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.panel-heading {
+  min-height: 57px;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panel-heading h2 {
+  gap: 9px;
+  font-size: 17px;
+  font-weight: 670;
+  margin: 0;
+}
+
+.panel-heading h2 > svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.7;
+}
+
+.panel-heading > span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.function-plot {
+  height: clamp(175px, 18vw, 248px);
+  width: 100%;
+  aspect-ratio: auto;
+  color: var(--muted);
+  font: 12px var(--mono);
+}
+
+.course-floor {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 34px;
+}
+
+.course-main {
+  min-width: 0;
+}
+
+.lesson-intro {
+  padding: 26px 0 16px;
+  background: var(--surface);
+}
+
+.intro-meta,
+.eyebrow,
+.local-mode,
+.chapter-bar,
+.chapters,
+.chapters a,
+.chapter-actions,
+.panel-heading,
+.panel-heading h2,
+.dock-header,
+.dock-header h2,
+.footer-inner {
+  display: flex;
+  align-items: center;
+}
+
+.intro-meta,
+.chapter-bar,
+.dock-header,
+.footer-inner {
+  justify-content: space-between;
+}
+
+.eyebrow {
+  gap: 9px;
+  font: 600 12px / 1.4 var(--mono);
+  letter-spacing: 0.055em;
+  color: var(--muted);
+}
+
+.eyebrow span {
+  width: 17px;
+  height: 1px;
+  background: #a3afb6;
+}
+
+.eyebrow img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.local-mode {
+  font-size: 12px;
+  color: var(--muted);
+  gap: 6px;
+}
+
+.lesson-intro h1 {
+  margin: 9px 0 5px;
+  font-size: clamp(29px, 3vw, 42px);
+  line-height: 1.26;
+  letter-spacing: -0.045em;
+  font-weight: 720;
+}
+
+.lesson-intro p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.chapter-bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--surface);
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.chapters {
+  overflow-x: auto;
+  gap: clamp(15px, 2vw, 28px);
+  min-width: 0;
+}
+
+.chapters a {
+  position: relative;
+  white-space: nowrap;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 570;
+  padding: 12px 0 13px;
+}
+
+.chapters a[aria-current="page"] {
+  color: var(--ink);
+}
+
+.chapters a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--signal);
+  border-radius: 3px;
+}
+
+.count {
+  background: #e6eaec;
+  border-radius: 4px;
+  font: 12px var(--mono);
+  padding: 2px 5px;
+}
+
+.chapter-actions {
+  gap: 8px;
+  flex-shrink: 0;
+  padding-bottom: 6px;
+}
+
+.reading-page {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.lesson-prose {
+  max-width: 790px;
+  padding: 22px clamp(20px, 3vw, 42px) 26px;
+  font-size: 16px;
+  line-height: 1.86;
+  overflow-wrap: anywhere;
+}
+
+.lesson-prose h2 {
+  position: relative;
+  font-size: clamp(19px, 1.8vw, 24px);
+  margin: 26px 0 10px;
+  font-weight: 670;
+  line-height: 1.5;
+  scroll-margin-top: 3.75rem;
+}
+
+.lesson-prose h2:first-child {
+  margin-top: 0;
+}
+
+.lesson-prose p,
+.lesson-prose ul {
+  margin: 0 0 12px;
+}
+
+.lesson-prose ul {
+  list-style: disc;
+  padding-left: 22px;
+}
+
+.lesson-prose li {
+  margin: 5px 0;
+}
+
+.lesson-prose a {
+  color: #a4431f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lesson-prose .permalink {
+  position: absolute;
+  bottom: 0.38em;
+  display: inline-flex;
+  margin-left: 8px;
+  vertical-align: middle;
+  color: #78858b;
+  opacity: 0;
+}
+
+.lesson-prose h2:hover .permalink,
+.lesson-prose h2:focus-within .permalink {
+  opacity: 1;
+}
+
+.lesson-prose h2:focus {
+  outline: none;
+  color: #a4431f;
+}
+
+.page-footer {
+  background: #20282d;
+  color: #edf2f4;
+  width: 100%;
+}
+
+.footer-inner {
+  min-height: 80px;
+  gap: 15px;
+  font-size: 14px;
+}
+
+.footer-inner small {
+  color: #bdc9cd;
+  margin-left: 8px;
+  font-size: 13px;
+}
+
+.footer-inner > span:last-child {
+  color: #c7d3d8;
+  font: 12px / 1.5 var(--mono);
+}
+
+.guide-dock {
+  position: fixed;
+  inset: 12px 12px 12px auto;
+  margin: 0;
+  width: 332px;
+  max-width: calc(100vw - 24px);
+  height: calc(100dvh - 24px);
+  max-height: none;
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 8px 32px #17263124;
+  overflow: hidden;
+  z-index: 9;
+}
+
+.guide-dock[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-dock::backdrop {
+  background: #1726314a;
+}
+
+.dock-header {
+  padding: 14px 16px 10px;
+}
+
+.dock-header h2 {
+  font-size: 17px;
+  font-weight: 660;
+  gap: 8px;
+}
+
+.dock-select {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dock-select label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dock-select select {
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--surface);
+  padding: 5px 8px;
+}
+
+.guide-dock .lesson-prose {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  padding: 18px;
+  font-size: 15px;
+}
+
+.guide-dock h2[data-anchor] {
+  font-size: 17px;
+}
+
+.open-chapter {
+  color: var(--muted);
+  font-size: 14px;
+  gap: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px;
+  border-top: 1px solid var(--border);
+}
+
+@media (width >= 1600px) {
+  .reading-open .course-main {
+    margin-left: min(calc((100% - 1240px) / 2), calc(100% - 1240px - 356px));
+  }
+}
+
+@media (width <= 920px) {
+  .lesson-prose h2 {
+    scroll-margin-top: 6rem;
+  }
+
+  .chapter-bar {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    gap: 2px;
+  }
+
+  .chapter-actions {
+    align-self: flex-end;
+    padding: 0;
+  }
+}
+
+@media (width <= 620px) {
+  .shell {
+    width: calc(100% - 28px);
+  }
+
+  .lesson-intro {
+    padding: 15px 0 9px;
+  }
+
+  .lesson-intro p {
+    font-size: 14px;
+  }
+
+  .chapters {
+    gap: 16px;
+  }
+
+  .chapters a svg {
+    display: none;
+  }
+
+  .chapter-actions button {
+    height: 32px;
+  }
+
+  .lesson-prose {
+    padding: 17px;
+    font-size: 15px;
+  }
+
+  .footer-inner {
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 5px;
+  }
+
+  .guide-dock {
+    inset: 8px 8px 8px auto;
+    height: calc(100dvh - 16px);
+    max-width: calc(100vw - 16px);
+  }
+}
+
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.guide-dock[data-expanded="true"] {
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+}
+
+.guide-dock[data-expanded="true"] .lesson-prose {
+  width: 100%;
+  max-width: none;
+  padding: 24px max(20px, calc((100% - 740px) / 2));
+  font-size: 16px;
+}

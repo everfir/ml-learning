@@ -1,0 +1,10 @@
+{
+  "files": { "includes": ["**", "!!.impeccable", "!!dist", "!!node_modules", "!!pnpm-lock.yaml"] },
+  "formatter": { "enabled": true, "indentStyle": "space", "lineWidth": 100 },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "css": {
+    "parser": { "tailwindDirectives": true },
+    "linter": { "enabled": false },
+    "formatter": { "enabled": true }
+  }
+}

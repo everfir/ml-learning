@@ -28,6 +28,31 @@ function subscribe(fn: () => void) {
 function getHash() {
   return location.hash;
 }
+
+function followLessonLink(event: MouseEvent) {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  const hash = link?.getAttribute("href");
+  if (
+    !hash?.startsWith(`#/${__EXPERIMENT_ID__}/`) ||
+    link?.hasAttribute("target") ||
+    link?.hasAttribute("download")
+  )
+    return;
+
+  // In srcdoc, a relative href can resolve against the preview host's URL.
+  event.preventDefault();
+  window.location.hash = hash;
+}
+
 interface ShellProps {
   title: string;
   description: string;
@@ -57,6 +82,10 @@ export function LabShell({
   const section = page.section;
   const interactive = isInteractive(section);
   const previous = useRef(section);
+  useEffect(() => {
+    document.addEventListener("click", followLessonLink);
+    return () => document.removeEventListener("click", followLessonLink);
+  }, []);
   useLayoutEffect(() => {
     if (previous.current !== section && !page.anchor) window.scrollTo(0, 0);
     previous.current = section;

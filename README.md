@@ -1,6 +1,6 @@
 # 梯度实验室
 
-每份教材都是一个可独立运行的机器学习实验。首课《单个神经元与激活函数》提供四种激活函数、实时响应曲线、可从控件定位的 MDX 讲解，以及 IndexedDB 参数草稿和实验记录。
+每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。另有独立的单神经元模板演示。两者均支持 MDX 对照阅读和本地实验记录。
 
 ## 开始使用
 
@@ -8,12 +8,12 @@
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm dev
-pnpm build neuron
+pnpm dev fruit-sorting
+pnpm build fruit-sorting
 pnpm check
 ```
 
-开发服务器默认打开首课。双击 `dist/neuron/index.html` 即可离线使用，也可将这一个文件重命名后分享。文件大小指未压缩的实际交付体积。接收平台需要允许运行 HTML 内联 JavaScript。
+以上命令打开和打包入门第一课。`pnpm dev neuron` 可打开单神经元演示，也是省略实验 ID 时的默认入口。双击 `dist/fruit-sorting/index.html` 即可离线使用，也可将这一个文件重命名后分享。文件大小指未压缩的实际交付体积。接收平台需要允许运行 HTML 内联 JavaScript。
 
 ## 新增教材
 

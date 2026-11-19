@@ -1,3 +1,5 @@
+import { sigmoid } from "../../shared/ml/activation.ts";
+
 export const functions = ["Sigmoid", "ReLU", "Tanh", "Linear"] as const;
 export type Activation = (typeof functions)[number];
 export type Parameters = { activation: Activation; x: number; w: number; b: number };
@@ -11,7 +13,7 @@ export const formulas: Record<Activation, string> = {
 export function activate(fn: Activation, z: number) {
   switch (fn) {
     case "Sigmoid":
-      return 1 / (1 + Math.exp(-z));
+      return sigmoid(z);
     case "ReLU":
       return Math.max(0, z);
     case "Tanh":

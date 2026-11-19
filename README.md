@@ -1,8 +1,8 @@
 # 梯度实验室
 
-每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。第二课在模拟果园里手动调线、逐步训练，再抽新果验收。第三课用礼盒订单检验一条线的限制，让读者组合两道筛。第四课从拼色礼盒订单学习决策树。另有独立的单神经元模板演示。每课均支持 MDX 对照阅读和本地实验记录。
+每份教材都是一个可独立运行的机器学习实验。入门第一课《让机器从例子里找规律》从柑橘分拣讲起。第二课在模拟果园里手动调线、逐步训练，再抽新果验收。第三课用礼盒订单检验一条线的限制，让读者组合两道筛。第四课从拼色礼盒订单学习决策树。第五课给展台挑果，观察单个神经元的权重、偏置与激活。另有独立的单神经元模板演示。每课均支持 MDX 对照阅读和本地实验记录。
 
-[在线课程目录](https://everfir.github.io/ml-learning/) · [第一课：让机器从例子里找规律](https://everfir.github.io/ml-learning/fruit-sorting/) · [第二课：让机器自己调好一条分箱线](https://everfir.github.io/ml-learning/fruit-boundary/) · [第三课：一条直线什么时候不够用？](https://everfir.github.io/ml-learning/gift-sorting/) · [第四课：同样大的橘子，为什么要分开？](https://everfir.github.io/ml-learning/fruit-tree/) · [单神经元演示](https://everfir.github.io/ml-learning/neuron/)
+[在线课程目录](https://everfir.github.io/ml-learning/) · [第一课：让机器从例子里找规律](https://everfir.github.io/ml-learning/fruit-sorting/) · [第二课：让机器自己调好一条分箱线](https://everfir.github.io/ml-learning/fruit-boundary/) · [第三课：一条直线什么时候不够用？](https://everfir.github.io/ml-learning/gift-sorting/) · [第四课：同样大的橘子，为什么要分开？](https://everfir.github.io/ml-learning/fruit-tree/) · [第五课：哪颗橘子先送上展台？](https://everfir.github.io/ml-learning/fruit-display/) · [单神经元演示](https://everfir.github.io/ml-learning/neuron/)
 
 ## GitHub Pages 发布
 

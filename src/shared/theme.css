@@ -249,14 +249,12 @@ button:disabled {
 }
 
 .reading-page {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  max-width: 50rem;
+  margin-inline: auto;
+  padding-block: clamp(8px, 1.4vw, 20px) 26px;
 }
 
 .lesson-prose {
-  max-width: 790px;
-  padding: 22px clamp(20px, 3vw, 42px) 26px;
   font-size: 16px;
   line-height: 1.86;
   overflow-wrap: anywhere;
@@ -313,6 +311,40 @@ button:disabled {
 .lesson-prose h2:focus {
   outline: none;
   color: #a4431f;
+}
+
+.theory-note {
+  margin-block: 14px 20px;
+  font-size: 0.94em;
+}
+
+.theory-note summary {
+  width: fit-content;
+  padding-block: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.theory-note summary::marker,
+.theory-label {
+  color: #a4431f;
+}
+
+.theory-label {
+  margin-inline-end: 0.65em;
+  font-size: 0.85em;
+}
+
+.theory-note summary:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.theory-body {
+  margin-block-start: 6px;
+  border-inline-start: 2px solid var(--border);
+  padding-inline-start: 1em;
 }
 
 .page-footer {
@@ -469,7 +501,6 @@ button:disabled {
   }
 
   .lesson-prose {
-    padding: 17px;
     font-size: 15px;
   }
 

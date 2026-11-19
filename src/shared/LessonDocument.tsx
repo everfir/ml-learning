@@ -58,7 +58,18 @@ function Citation({ href, children, ...props }: ComponentProps<"a">) {
     </a>
   );
 }
-const components = { Heading, Jump, a: Citation };
+function TheoryNote({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="theory-note">
+      <summary>
+        <span className="theory-label">理论拓展</span>
+        {title}
+      </summary>
+      <div className="theory-body">{children}</div>
+    </details>
+  );
+}
+const components = { Heading, Jump, TheoryNote, a: Citation };
 export function LessonDocument({
   documents,
   target,

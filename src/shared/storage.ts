@@ -1,6 +1,6 @@
 import { openDB } from "idb";
 
-function openStore() {
+export function openRecordStore() {
   return openDB(`ml-learning:${__EXPERIMENT_ID__}`, 1, {
     upgrade(db) {
       db.createObjectStore("records");
@@ -10,7 +10,7 @@ function openStore() {
 
 // Resolve writes after the transaction commits, including quota errors.
 export async function readRecord(key: string): Promise<unknown> {
-  const db = await openStore();
+  const db = await openRecordStore();
   try {
     return await db.get("records", key);
   } finally {
@@ -18,7 +18,7 @@ export async function readRecord(key: string): Promise<unknown> {
   }
 }
 export async function writeRecord(key: string, value: unknown) {
-  const db = await openStore();
+  const db = await openRecordStore();
   try {
     await db.put("records", value, key);
   } finally {
@@ -27,7 +27,7 @@ export async function writeRecord(key: string, value: unknown) {
 }
 
 export async function listRecords(prefix: string): Promise<unknown[]> {
-  const db = await openStore();
+  const db = await openRecordStore();
   try {
     return await db.getAll("records", IDBKeyRange.bound(prefix, `${prefix}\uffff`));
   } finally {

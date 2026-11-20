@@ -28,11 +28,20 @@ test("验收盘排除全部训练坐标，可按保存的种子复现", () => {
   const keys = (f: { size: number; color: number }) => `${f.size},${f.color}`;
   for (const seed of [0, 10, 0xffffffff]) {
     const batch = audit(seed);
-    assert.equal(batch.length, 10);
-    assert.equal(new Set([...training, ...batch].map(keys)).size, 22);
+    assert.equal(batch.length, 100);
+    assert.equal(new Set(batch.map((f) => f.id)).size, 100);
+    assert.deepEqual(batch.slice(0, 10).map(keys), audit(seed, 1).map(keys));
+    assert.equal(new Set([...training, ...batch].map(keys)).size, 112);
     assert.deepEqual(audit(seed), batch);
     assert.ok(validDraft({ ...start(), seed, weight: 2, selected: "D" }));
   }
   assert.notDeepEqual(audit(0), audit(10));
   assert.ok(!validDraft({ ...start(), weight: Infinity }));
+});
+
+test("旧版草稿沿用原权重，试调基准写入新版快照", () => {
+  assert.ok(validDraft({ version: 1, weight: 0.4, selected: "A", seed: 33 }));
+  assert.equal(audit(33, 1).length, 10);
+  assert.ok(validDraft({ ...start(), weight: 0.4, reference: 0.25 }));
+  assert.ok(!validDraft({ ...start(), reference: -1 }));
 });

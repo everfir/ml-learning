@@ -32,15 +32,23 @@ export function measure(weight: number, fruits: Fruit[]) {
     hits: values.filter((v) => v.correct).length,
   };
 }
-export const audit = (seed: number) => drawFruit(seed, training, 10, "M");
-export type Draft = { version: 1; weight: number; selected: string; seed: number | null };
+export const auditSize = 100;
+export function audit(seed: number, version: Draft["version"] = 2) {
+  if (version === 1) return drawFruit(seed, training, 10, "M");
+  return drawFruit(seed, training, auditSize, "M").map((f, i) => ({ ...f, id: String(i + 1) }));
+}
+
+type Settings = { weight: number; selected: string; seed: number | null };
+export type Draft = Settings & ({ version: 1 } | { version: 2; reference: number });
+export const referenceWeight = (d: Draft) => (d.version === 1 ? d.weight : d.reference);
 export function start(): Draft {
-  return { version: 1, weight: initialWeight, selected: "A", seed: null };
+  return { version: 2, weight: initialWeight, reference: initialWeight, selected: "A", seed: null };
 }
 export function validDraft(value: unknown): value is Draft {
   const d = value as Partial<Draft> | null;
   return (
-    d?.version === 1 &&
+    (d?.version === 1 ||
+      (d?.version === 2 && typeof d.reference === "number" && weights.includes(d.reference))) &&
     typeof d.weight === "number" &&
     weights.includes(d.weight) &&
     training.some((f) => f.id === d.selected) &&

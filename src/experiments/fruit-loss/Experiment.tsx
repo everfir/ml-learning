@@ -1,13 +1,14 @@
 import { BookOpen, Save } from "lucide-react";
 import { useState } from "react";
 import { box, ordered } from "@/shared/data/gift-order";
+import { FruitMap } from "@/shared/fruit/FruitMap";
 import { LabShell } from "@/shared/LabShell";
 import { guideHref, lessonHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
 import { useLessonNotebook } from "@/shared/useLessonNotebook";
 import { AuditPanel } from "./AuditPanel";
 import { documents } from "./documents";
-import { FruitMap, LossCurves } from "./Figures";
+import { LossCurves } from "./Figures";
 import lesson from "./lesson.json";
 import {
   auditSize,
@@ -72,7 +73,7 @@ function Workbench({ d, change }: { d: Draft; change: (d: Draft) => void }) {
               </span>
             </div>
             <FruitMap
-              weight={d.weight}
+              predictsGift={(f) => inspect(d.weight, f).gift}
               fruit={training}
               selected={fruit.id}
               onSelect={(selected) => change({ ...d, selected })}

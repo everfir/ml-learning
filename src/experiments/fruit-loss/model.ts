@@ -1,17 +1,8 @@
-import { drawFruit, examples, type Fruit, ordered } from "../../shared/data/gift-order.ts";
+import { drawFruit, type Fruit, ordered } from "../../shared/data/gift-order.ts";
+import { auditSize, drawAudit, training } from "../../shared/data/training-tray.ts";
 import { sigmoid } from "../../shared/ml/activation.ts";
-export const training: Fruit[] = [
-  ...examples,
-  { id: "D", size: 4, color: 6 },
-  { id: "E", size: 1, color: 4 },
-  { id: "F", size: 7, color: 4 },
-  { id: "G", size: 8, color: 9 },
-  { id: "H", size: 3, color: 1 },
-  { id: "I", size: 6, color: 8 },
-  { id: "J", size: 5, color: 9 },
-  { id: "K", size: 7, color: 10 },
-  { id: "L", size: 10, color: 9 },
-];
+
+export { auditSize, training };
 export const initialWeight = 0.25;
 export const weights = Array.from({ length: 41 }, (_, i) => i / 20);
 export function inspect(weight: number, f: Fruit) {
@@ -32,12 +23,8 @@ export function measure(weight: number, fruits: Fruit[]) {
     hits: values.filter((v) => v.correct).length,
   };
 }
-export const auditSize = 100;
-export function audit(seed: number, version: Draft["version"] = 2) {
-  if (version === 1) return drawFruit(seed, training, 10, "M");
-  return drawFruit(seed, training, auditSize, "M").map((f, i) => ({ ...f, id: String(i + 1) }));
-}
-
+export const audit = (seed: number, version: Draft["version"] = 2) =>
+  version === 1 ? drawFruit(seed, training, 10, "M") : drawAudit(seed);
 type Settings = { weight: number; selected: string; seed: number | null };
 export type Draft = Settings & ({ version: 1 } | { version: 2; reference: number });
 export const referenceWeight = (d: Draft) => (d.version === 1 ? d.weight : d.reference);

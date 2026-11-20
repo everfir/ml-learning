@@ -1,324 +1,334 @@
 import { BookOpen, Save } from "lucide-react";
+import { useState } from "react";
 import { LabShell } from "@/shared/LabShell";
 import { guideHref, lessonHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
 import { useLessonNotebook } from "@/shared/useLessonNotebook";
 import { documents } from "./documents";
-import { ActivationPlot, Boundary } from "./Figures";
+import { Trace } from "./Figures";
+import { LegacyRecords } from "./LegacyRecords";
 import lesson from "./lesson.json";
 import {
-  biasAt,
-  contributions,
-  crossing,
+  batch,
+  box,
   type Draft,
-  formatScore,
+  examples,
+  forward,
+  freshGuesses,
+  ordered,
   phases,
-  ranking,
-  reading,
-  sizePercent,
   start,
-  tray,
   validDraft,
 } from "./model";
 import "./style.css";
 
-type Props = { d: Draft; change: (next: Draft) => void };
-function Guide({ phase }: { phase: Draft["phase"] }) {
-  return (
-    <a className="stand-guide" href={guideHref("theory", phase)}>
-      <BookOpen size={15} />
-      对照讲解
-    </a>
-  );
-}
+type Props = { d: Draft; change: (d: Draft) => void };
 function Slider({
-  label,
-  value,
-  display,
+  name,
+  n,
   min,
   max,
-  step = 1,
-  change,
+  edit,
 }: {
-  label: string;
-  value: number;
-  display: string;
+  name: string;
+  n: number;
   min: number;
   max: number;
-  step?: number;
-  change: (n: number) => void;
+  edit: (n: number) => void;
 }) {
   return (
-    <label className="stand-slider">
-      <span>{label}</span>
-      <output>{display}</output>
+    <label className="net-slider">
+      <span>{name}</span>
+      <output>{n}</output>
       <input
+        aria-label={name}
         type="range"
-        aria-label={label}
-        aria-valuetext={display}
         min={min}
         max={max}
-        step={step}
-        value={value}
-        onChange={(e) => change(e.target.valueAsNumber)}
+        step={1}
+        value={n}
+        onChange={(e) => edit(e.target.valueAsNumber)}
       />
     </label>
   );
 }
-function Pair({ d, change }: Props) {
-  const [a, b] = tray.map((f) => contributions(d.weights, f).total);
-  function edit(key: "size" | "color", value: number) {
-    const weights = { ...d.weights, [key]: value };
-    change({ ...d, weights, biasPoints: biasAt(weights, tray[0].orange), orange: tray[0].orange });
+function Workbench({ d, change }: Props) {
+  const [index, select] = useState(0);
+  const audit = d.phase === "audit",
+    blind = audit && !d.revealed;
+  const fruit = audit ? batch(d.seed) : examples;
+  const selected = Math.min(index, fruit.length - 1),
+    f = fruit[selected];
+  const correct = fruit.filter((v) => forward(d, v).gift === ordered(v)).length;
+  function lock() {
+    select(0);
+    change({
+      ...d,
+      phase: "audit",
+      guesses: freshGuesses(),
+      revealed: false,
+      seed: crypto.getRandomValues(new Uint32Array(1))[0],
+    });
   }
+  const guide =
+    d.phase === "audit"
+      ? "audit"
+      : d.phase === "single"
+        ? "weights"
+        : d.phase === "pair"
+          ? "bias"
+          : "activation";
   return (
-    <div className="stand-columns">
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>A、B 的打分单</h2>
-          <span>展台候选 · 模拟测量</span>
-        </div>
-        <div className="stand-body">
-          <div className="stand-legend">
-            <span className="stand-size">■ 果径贡献</span>
-            <span className="stand-color">■ 颜色贡献</span>
+    <>
+      <ol className="net-stages" aria-label="实验进度">
+        {Object.entries(phases).map(([k, v], i) => (
+          <li key={k} aria-current={k === d.phase ? "step" : undefined}>
+            0{i + 1} {v}
+          </li>
+        ))}
+      </ol>
+      <div className="net-mission">
+        <strong>装箱任务</strong>
+        <span>个头和橙色各按 0–10 分计。两项相差至少 3 分进礼盒，其余散装。</span>
+      </div>
+      <div className="net-columns">
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>{audit ? "新果验收单" : "店员留下的三颗样果"}</h2>
+            <small>{blind ? "网络已锁定" : `与订单一致 ${correct} / ${fruit.length}`}</small>
           </div>
-          {tray.slice(0, 2).map((f) => {
-            const score = contributions(d.weights, f);
-            return (
-              <div className="stand-slip" key={f.id}>
-                <div className="stand-slip-head">
-                  <h3>
-                    {f.id} 果{" "}
-                    <small>
-                      {f.diameter} mm · {f.orange}% 橙色
-                    </small>
-                  </h3>
+          {blind ? (
+            <div className="net-body">
+              <p>先按订单给这两颗果子选箱。提交后一起看你的答案、机器的去向和店员的标签。</p>
+              {fruit.slice(0, 2).map((v, i) => (
+                <div className="net-probe" key={v.id}>
                   <strong>
-                    {formatScore(score.total / 100)} <small>分</small>
+                    {v.id} 果 · 个头 {v.size} / 橙色 {v.color}
                   </strong>
+                  <div className="net-actions">
+                    {[true, false].map((g) => (
+                      <Button
+                        key={box(g)}
+                        size="sm"
+                        variant={d.guesses[i] === g ? "default" : "outline"}
+                        aria-pressed={d.guesses[i] === g}
+                        aria-label={`${v.id} 果猜${box(g)}`}
+                        onClick={() =>
+                          change({ ...d, guesses: d.guesses.map((old, j) => (j === i ? g : old)) })
+                        }
+                      >
+                        {box(g)}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-                <div className="stand-meter" aria-hidden="true">
-                  <i style={{ width: `${score.sizePoints / 2.4}%` }} />
-                  <i style={{ width: `${score.colorPoints / 2.4}%` }} />
-                </div>
-                <p>
-                  果径 {formatScore(sizePercent(f.diameter) / 100)} × {formatScore(d.weights.size)}{" "}
-                  = <b>{formatScore(score.sizePoints / 100)}</b>　颜色 {formatScore(f.orange / 100)}{" "}
-                  × {formatScore(d.weights.color)} = <b>{formatScore(score.colorPoints / 100)}</b>
-                </p>
-              </div>
-            );
-          })}
-          <div className="stand-result" role="status">
-            {a === b
-              ? "A、B 并列"
-              : `${a > b ? "A" : "B"} 果领先 ${formatScore(Math.abs(a - b) / 100)} 分`}
-          </div>
-        </div>
-      </section>
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>给线索分配权重</h2>
-          <Guide phase="weights" />
-        </div>
-        <div className="stand-body">
-          <p>你会先摆哪颗？选一颗，再试着让它领先。</p>
-          <div className="stand-actions">
-            {(["A", "B"] as const).map((id) => (
+              ))}
               <Button
-                key={id}
-                size="sm"
-                aria-pressed={d.pick === id}
-                variant={d.pick === id ? "default" : "outline"}
-                onClick={() => change({ ...d, pick: id })}
+                disabled={d.guesses.slice(0, 2).includes(null)}
+                onClick={() => change({ ...d, revealed: true })}
               >
-                先摆 {id} 果
+                核对六颗新果
               </Button>
-            ))}
+            </div>
+          ) : (
+            <>
+              <table className="net-table">
+                <thead>
+                  <tr>
+                    {["样果", "个头", "橙色", "订单", "机器", ...(audit ? ["你猜"] : [])].map(
+                      (h) => (
+                        <th key={h}>{h}</th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {fruit.map((v, i) => {
+                    const actual = forward(d, v).gift;
+                    return (
+                      <tr key={v.id} data-selected={i === selected || undefined}>
+                        <th scope="row">
+                          <button
+                            type="button"
+                            aria-pressed={i === selected}
+                            aria-label={`追踪 ${v.id} 果`}
+                            onClick={() => select(i)}
+                          >
+                            {v.id} 果
+                          </button>
+                        </th>
+                        <td>{v.size}</td>
+                        <td>{v.color}</td>
+                        <td>{box(ordered(v))}</td>
+                        <td className={actual === ordered(v) ? "" : "net-miss"}>
+                          {box(actual)} {actual === ordered(v) ? "✓" : "×"}
+                        </td>
+                        {audit && (
+                          <td>
+                            {typeof d.guesses[i] === "boolean" ? box(d.guesses[i] === true) : "—"}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="net-body">
+                <Trace d={d} f={f} />
+                <p>点样果名字，可以沿着它的计算路径核对每一分。</p>
+              </div>
+            </>
+          )}
+        </section>
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>{phases[d.phase]}</h2>
+            <a className="net-guide" href={guideHref("workbench", guide)}>
+              <BookOpen size={14} />
+              对照讲解
+            </a>
           </div>
-          <Slider
-            label="果径权重"
-            value={d.weights.size}
-            display={formatScore(d.weights.size)}
-            min={0.5}
-            max={2}
-            step={0.25}
-            change={(n) => edit("size", n)}
-          />
-          <Slider
-            label="颜色权重"
-            value={d.weights.color}
-            display={formatScore(d.weights.color)}
-            min={0.5}
-            max={2}
-            step={0.25}
-            change={(n) => edit("color", n)}
-          />
-          <p>保持果径权重，试着把颜色权重调到与它相等，再往上调一格。</p>
-          <Button onClick={() => change({ ...d, phase: "bias" })}>保留权重，挑入选果</Button>
-        </div>
-      </section>
-    </div>
-  );
-}
-function Bias({ d, change }: Props) {
-  const list = ranking(d);
-  return (
-    <div className="stand-columns">
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>五颗果子的入选线</h2>
-          <span>线上与浅橙区域入选</span>
-        </div>
-        <Boundary draft={d} />
-        <table className="stand-table">
-          <caption>按总分排列的候选盘</caption>
-          <thead>
-            <tr>
-              <th>样果</th>
-              <th>加权分</th>
-              <th>总分 z</th>
-              <th>去向</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map(({ fruit, z, hard }) => (
-              <tr key={fruit.id}>
-                <th scope="row">{fruit.id} 果</th>
-                <td>{formatScore(contributions(d.weights, fruit).total / 100)}</td>
-                <td>{formatScore(z)}</td>
-                <td>{hard ? "上展台" : "留在盘中"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>今天展台要挑严一点</h2>
-          <Guide phase="bias" />
-        </div>
-        <div className="stand-body">
-          <p>
-            果径权重 {formatScore(d.weights.size)}，颜色权重 {formatScore(d.weights.color)}
-            。五颗果子共用这套偏好，每颗再加同一个偏置 b。
-          </p>
-          <div className="stand-result" role="status">
-            入选 {list.filter((f) => f.hard).length} / {list.length} 颗
-          </div>
-          <Slider
-            label="偏置 b"
-            value={d.biasPoints}
-            display={formatScore(d.biasPoints / 100)}
-            min={biasAt(d.weights, 95)}
-            max={biasAt(d.weights, 5)}
-            step={d.weights.color}
-            change={(biasPoints) => change({ ...d, biasPoints })}
-          />
-          <p>
-            加权分达到 <strong>{formatScore(-d.biasPoints / 100)}</strong>{" "}
-            就入选。把偏置往左调，观察哪颗先退出，以及 A、B 的先后有没有变化。
-          </p>
-          <div className="stand-actions">
-            <Button onClick={() => change({ ...d, phase: "activation" })}>
-              固定门槛，观察 A 果
-            </Button>
-            <Button variant="ghost" onClick={() => change({ ...d, phase: "weights" })}>
-              返回调权重
-            </Button>
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-function Activations({ d, change }: Props) {
-  const cut = crossing(d);
-  const f = { ...tray[0], orange: d.orange };
-  const r = reading(d, f);
-  const { sizePoints, colorPoints } = contributions(d.weights, f);
-  return (
-    <div className="stand-columns">
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>同一总分，两种响应</h2>
-          <span>A 果 · 75 mm</span>
-        </div>
-        <div className="stand-readouts" aria-live="polite">
-          <div className="stand-size">
-            ■ 硬门槛<strong>{r.hard}</strong>
-          </div>
-          <div className="stand-color">
-            ● Sigmoid<strong>{r.soft.toFixed(4)}</strong>
-          </div>
-        </div>
-        <ActivationPlot draft={d} />
-        <p className="stand-caption">
-          虚线标出 A 果当前的 z。方块和圆点分别读出两种函数在这里的高度。
-        </p>
-      </section>
-      <section className="panel">
-        <div className="panel-heading">
-          <h2>把 A 果移过入选线</h2>
-          <Guide phase="activation" />
-        </div>
-        <div className="stand-body">
-          <p>
-            保留刚才的权重、偏置和果径。模拟改变同一颗 A 果的橙色面积，达到 {cut}% 时正好在线上。
-          </p>
-          <Slider
-            label="A 果橙色面积"
-            min={0}
-            max={100}
-            value={d.orange}
-            display={`${d.orange}%`}
-            change={(orange) => change({ ...d, orange })}
-          />
-          <div className="stand-actions">
-            {[
-              [-1, "线前"],
-              [0, "线上"],
-              [1, "线后"],
-            ].map(([delta, label]) => {
-              const orange = cut + Number(delta);
-              return (
+          <div className="net-body">
+            {d.phase === "single" && (
+              <>
+                <p>
+                  <strong>让 A、B 都进礼盒，同时留下 C。</strong>{" "}
+                  现在机器给颜色加分、给个头扣分。先交换两项权重，看原先分对和分错的各是哪颗。
+                </p>
                 <Button
-                  key={label}
+                  variant="outline"
+                  onClick={() =>
+                    change({ ...d, sizeWeight: d.colorWeight, colorWeight: d.sizeWeight })
+                  }
+                >
+                  交换两项权重
+                </Button>
+              </>
+            )}
+            {d.phase === "pair" && (
+              <>
+                <p>
+                  你刚加了一路，沿用同一颗果子的读数，权重与第一路恰好相反。先把两个原始分直接相加。
+                </p>
+                <div className="net-feedback">
+                  检查 A，再检查 B：每一路都给出了线索，可是两路的合计总是 0。
+                </div>
+                <p>如果每一路只报告自己找到的正向线索，A 的正分还能留下吗？</p>
+                <Button onClick={() => change({ ...d, phase: "relu" })}>
+                  给两路接上「负分记 0」
+                </Button>
+              </>
+            )}
+            {d.phase === "relu" && (
+              <>
+                <p>
+                  <strong>负分记 0，这道开关叫 ReLU。</strong> 看 A 和 B 各靠哪一路拿分，再检查
+                  C。把总分门槛调到符合订单的位置。
+                </p>
+                <p className="net-feedback" role="status">
+                  {correct === 3
+                    ? "三颗样果全对。差 2 分和差 3 分的新果也能分清吗？"
+                    : "还有样果走错。可以用「颜色减个头」对准第一条线索，再检查门槛。"}
+                </p>
+              </>
+            )}
+            {(d.phase === "single" || d.phase === "relu") && (
+              <>
+                <Slider
+                  name="第一路 · 个头权重"
+                  min={-2}
+                  max={2}
+                  n={d.sizeWeight}
+                  edit={(sizeWeight) => change({ ...d, sizeWeight })}
+                />
+                <Slider
+                  name="第一路 · 橙色权重"
+                  min={-2}
+                  max={2}
+                  n={d.colorWeight}
+                  edit={(colorWeight) => change({ ...d, colorWeight })}
+                />
+                <Slider
+                  name="进礼盒的总分门槛"
+                  min={-20}
+                  max={20}
+                  n={d.threshold}
+                  edit={(threshold) => change({ ...d, threshold })}
+                />
+                <Button
                   size="sm"
                   variant="outline"
-                  aria-pressed={d.orange === orange}
-                  onClick={() => change({ ...d, orange })}
+                  onClick={() => change({ ...d, sizeWeight: -1, colorWeight: 1 })}
                 >
-                  {label} · {orange}%
+                  试「颜色减个头」
                 </Button>
-              );
-            })}
+                {d.phase === "single" ? (
+                  <>
+                    <p>
+                      三颗总分依次为 {examples.map((v) => forward(d, v).sum).join("、")}。C
+                      的两项读数都正好在 A、B 中间，它的分数也总在中间。
+                    </p>
+                    <Button onClick={() => change({ ...d, phase: "pair" })}>
+                      保留第一路，添一路反向打分
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={lock}>锁定网络，验新果</Button>
+                )}
+              </>
+            )}
+            {audit && (
+              <>
+                <p>
+                  网络固定在个头权重 {d.sizeWeight}、橙色权重 {d.colorWeight}
+                  ，第二路反向，总分门槛为 {d.threshold}。两个中间神经元各自经过 ReLU。
+                </p>
+                {d.revealed && (
+                  <>
+                    <p className="net-feedback">
+                      {correct === fruit.length
+                        ? "这批新果全部符合订单。"
+                        : "在验收单中点一颗带 × 的果子，找出分歧发生在哪一步。"}
+                    </p>
+                    <Button onClick={lock}>换一批新果</Button>
+                  </>
+                )}
+              </>
+            )}
+            {d.phase !== "single" && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  select(0);
+                  change({
+                    ...d,
+                    phase: d.phase === "pair" ? "single" : d.phase === "relu" ? "pair" : "relu",
+                    revealed: false,
+                    guesses: freshGuesses(),
+                  });
+                }}
+              >
+                {audit ? "解锁并调参" : "回到上一步"}
+              </Button>
+            )}
           </div>
-          <div className="stand-equation">
-            z = {formatScore(sizePoints / 100)} + {formatScore(colorPoints / 100)} −{" "}
-            {formatScore(-d.biasPoints / 100)} = <strong>{formatScore(r.z)}</strong>
-          </div>
-          <p>
-            按硬门槛，A 果{r.hard ? "上展台" : "留在盘中"}。若用 Sigmoid 输出 ≥ 0.5
-            作为入选条件，它也会{r.hard ? "上展台" : "留在盘中"}。
-          </p>
-          <Button variant="outline" onClick={() => change({ ...d, phase: "bias" })}>
-            返回调偏置
-          </Button>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </>
   );
 }
 export default function Experiment() {
-  const { draft, change, ready, runs, save, saving, notice } = useLessonNotebook(start, validDraft);
+  const { draft, change, runs, ready, saving, save, notice } = useLessonNotebook(
+    start,
+    validDraft,
+    { draftKey: "draft:v2", runPrefix: "network:" },
+  );
   return (
     <LabShell
       title={lesson.title}
       code="05"
       topic="机器学习入门"
-      description="让个头与颜色各投一份分。给门店挑展台候选果，再跟着同一颗橘子越过入选线。"
+      description="把小而橙、大而青的果子一起选出来。亲手搭一个有两个中间神经元的分拣器，再拿新果验收。"
       documents={documents}
       notice={notice}
       recordCount={runs.length}
@@ -328,68 +338,43 @@ export default function Experiment() {
           {saving ? "保存中" : "保存记录"}
         </Button>
       }
-      workbench={
-        ready ? (
-          <>
-            <ol className="stand-stages" aria-label="实验进度">
-              {Object.entries(phases).map(([key, name], i) => (
-                <li key={key} aria-current={key === draft.phase ? "step" : undefined}>
-                  0{i + 1} {name}
-                </li>
-              ))}
-            </ol>
-            {draft.phase === "weights" ? (
-              <Pair d={draft} change={change} />
-            ) : draft.phase === "bias" ? (
-              <Bias d={draft} change={change} />
-            ) : (
-              <Activations d={draft} change={change} />
-            )}
-          </>
-        ) : (
-          <p>正在读取实验草稿…</p>
-        )
-      }
+      workbench={ready ? <Workbench d={draft} change={change} /> : <p>正在读取网络草稿…</p>}
       records={
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>展台挑果记录</h2>
-            <span>{runs.length} 条</span>
-          </div>
-          {runs.length === 0 ? (
-            <p className="stand-body">
-              {ready
-                ? "在工作台保存一条记录，就能回看当时的排名、入选线或过线读数。"
-                : "正在读取记录…"}
-            </p>
-          ) : (
-            runs.map((r) => (
-              <div key={r.id} className="stand-record">
-                <div>
-                  <strong>
-                    {phases[r.draft.phase]} · 果径权重 {formatScore(r.draft.weights.size)} /
-                    颜色权重 {formatScore(r.draft.weights.color)}
-                  </strong>
-                  <p>
-                    {new Date(r.at).toLocaleString("zh-CN")}
-                    {r.draft.phase !== "weights" &&
-                      ` · b = ${formatScore(r.draft.biasPoints / 100)}`}
-                    {r.draft.phase === "activation" && ` · A 果 ${r.draft.orange}% 橙色`}
-                  </p>
+        <>
+          <section className="panel">
+            <div className="panel-heading">
+              <h2>网络实验记录</h2>
+              <span>{runs.length} 条</span>
+            </div>
+            {runs.length === 0 ? (
+              <p className="net-body">
+                {ready ? "在工作台保存一次，可以回到当时的网络和验收单。" : "正在读取记录…"}
+              </p>
+            ) : (
+              runs.map((r) => (
+                <div key={r.id} className="net-record">
+                  <div>
+                    <strong>
+                      {phases[r.draft.phase]} · 权重 ({r.draft.sizeWeight}, {r.draft.colorWeight}) ·
+                      门槛 {r.draft.threshold}
+                    </strong>
+                    <p>{new Date(r.at).toLocaleString("zh-CN")}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      change(r.draft);
+                      location.hash = lessonHref({ section: "workbench" });
+                    }}
+                  >
+                    载入
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    change(r.draft);
-                    location.hash = lessonHref({ section: "workbench" });
-                  }}
-                >
-                  载入
-                </Button>
-              </div>
-            ))
-          )}
-        </section>
+              ))
+            )}
+          </section>
+          <LegacyRecords />
+        </>
       }
     />
   );

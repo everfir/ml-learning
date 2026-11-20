@@ -1,66 +1,44 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  biasAt,
-  contributions,
-  crossing,
-  ranking,
-  reading,
+  batch,
+  examples,
+  forward,
+  ordered,
   start,
-  tray,
   validDraft,
 } from "../src/experiments/fruit-display/model.ts";
 
-test("两项贡献分别计入：调颜色可以追平再反超", () => {
-  const [a, b] = tray;
-  const d = start();
-  assert.ok(contributions(d.weights, a).total > contributions(d.weights, b).total);
-  assert.equal(
-    contributions({ size: 1, color: 1 }, a).total,
-    contributions({ size: 1, color: 1 }, b).total,
-  );
-  assert.deepEqual(contributions({ size: 1, color: 1.5 }, a), {
-    sizePoints: 80,
-    colorPoints: 60,
-    total: 140,
-  });
-  assert.equal(contributions({ size: 1, color: 1.5 }, b).total, 160);
-});
-test("全范围偏置保持排名；同一颗果子的两种输出在同一条线上越过阈值", () => {
-  for (let size = 0.5; size <= 2; size += 0.25)
-    for (let color = 0.5; color <= 2; color += 0.25) {
-      const weights = { size, color };
-      const d = { ...start(), weights, biasPoints: biasAt(weights, 5) };
-      const ids = ranking(d).map((r) => r.fruit.id);
-      let count = 5;
-      for (let cut = 5; cut <= 95; cut++) {
-        const tuned = { ...d, biasPoints: biasAt(weights, cut) };
-        assert.ok(validDraft(tuned));
-        assert.equal(crossing(tuned), cut);
-        const list = ranking(tuned);
-        assert.deepEqual(
-          list.map((r) => r.fruit.id),
-          ids,
-        );
-        const selected = list.filter((r) => r.hard).length;
-        assert.ok(selected <= count);
-        count = selected;
-        const readings = [cut - 1, cut, cut + 1].map((orange) =>
-          reading(tuned, { ...tray[0], orange }),
-        );
-        assert.deepEqual(
-          readings.map((r) => r.hard),
-          [0, 1, 1],
-        );
-        assert.equal(readings[1].z, 0);
-        assert.equal(readings[1].soft, 0.5);
-        assert.ok(readings[0].soft < 0.5 && readings[2].soft > 0.5);
+test("任一可调单路的中点分等于平均分，无法同时实现三个标签", () => {
+  for (let sizeWeight = -2; sizeWeight <= 2; sizeWeight++)
+    for (let colorWeight = -2; colorWeight <= 2; colorWeight++)
+      for (let threshold = -20; threshold <= 20; threshold++) {
+        const d = { ...start(), sizeWeight, colorWeight, threshold };
+        const [a, b, c] = examples.map((f) => forward(d, f));
+        assert.equal(a.sum + b.sum, 2 * c.sum);
+        assert.ok(!a.gift || !b.gift || c.gift);
       }
+});
+test("两路会抵消，ReLU 后可在整个输入网格上实现订单", () => {
+  for (let size = 0; size <= 10; size++)
+    for (let color = 0; color <= 10; color++) {
+      const f = { id: "X", size, color };
+      assert.equal(forward({ ...start(), phase: "pair" }, f).sum, 0);
+      const r = forward({ ...start(), phase: "relu", threshold: 3 }, f);
+      assert.equal(r.sum, Math.abs(size - color));
+      assert.equal(r.gift, ordered(f));
     }
 });
-test("阶段快照可载入，超出模拟范围的草稿不会恢复", () => {
-  const saved = { ...start(), phase: "activation", orange: 39 };
-  assert.ok(validDraft(JSON.parse(JSON.stringify(saved))));
-  assert.ok(!validDraft({ ...saved, biasPoints: 0 }));
-  assert.ok(!validDraft({ ...saved, orange: 101 }));
+test("盲测在锁定规则下生成，可重现，门槛不准时边界果会漏装", () => {
+  const d = { ...start(), phase: "audit" as const, seed: 135 };
+  assert.ok(validDraft(d));
+  assert.ok(!validDraft({ ...d, revealed: true }));
+  const fruits = batch(d.seed);
+  const id = (f: (typeof fruits)[number]) => `${f.size},${f.color}`;
+  assert.equal(new Set([...examples, ...fruits].map(id)).size, 9);
+  assert.deepEqual(fruits, batch(135));
+  assert.notDeepEqual(fruits, batch(136));
+  assert.deepEqual(fruits.slice(0, 2).map(ordered), [true, false]);
+  assert.equal(forward(d, fruits[0]).gift, false);
+  assert.ok(validDraft({ ...d, guesses: [true, false, null, null, null, null], revealed: true }));
 });

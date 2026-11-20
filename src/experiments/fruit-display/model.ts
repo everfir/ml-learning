@@ -1,77 +1,87 @@
-import { sigmoid } from "../../shared/ml/activation.ts";
-export type Fruit = { id: string; diameter: number; orange: number };
-export const tray: Fruit[] = [
-  { id: "A", diameter: 75, orange: 40 },
-  { id: "B", diameter: 65, orange: 80 },
-  { id: "C", diameter: 70, orange: 60 },
-  { id: "D", diameter: 59, orange: 25 },
-  { id: "E", diameter: 79, orange: 92 },
+export type Fruit = { id: string; size: number; color: number };
+export const examples: Fruit[] = [
+  { id: "A", size: 2, color: 8 },
+  { id: "B", size: 8, color: 2 },
+  { id: "C", size: 5, color: 5 },
 ];
-export const phases = { weights: "调权重", bias: "调偏置", activation: "看过线" };
-export type Weights = { size: number; color: number };
-export type Draft = {
-  version: 1;
-  phase: keyof typeof phases;
-  weights: Weights;
-  biasPoints: number;
-  orange: number;
-  pick: "A" | "B" | null;
+export const phases = {
+  single: "试一个打分器",
+  pair: "接第二路",
+  relu: "负分记零",
+  audit: "锁定验收",
 };
-export function sizePercent(diameter: number) {
-  return 4 * (diameter - 55);
-}
-export const hard = (z: number) => Number(z >= 0);
-export function contributions(w: Weights, f: Fruit) {
-  // Keep quarter-weight × integer-percent products exact until after the threshold comparison.
-  const sizePoints = w.size * sizePercent(f.diameter);
-  const colorPoints = w.color * f.orange;
-  return { sizePoints, colorPoints, total: sizePoints + colorPoints };
-}
-export function reading(d: Draft, f: Fruit) {
-  const points = contributions(d.weights, f).total + d.biasPoints;
-  const z = points / 100;
-  return { z, hard: hard(z), soft: sigmoid(z) };
-}
-export function biasAt(w: Weights, orange: number) {
-  return -contributions(w, { ...tray[0], orange }).total;
-}
-export function crossing(d: Draft) {
-  return (-d.biasPoints - d.weights.size * sizePercent(tray[0].diameter)) / d.weights.color;
-}
+export type Phase = keyof typeof phases;
+export type Draft = {
+  version: 2;
+  phase: Phase;
+  sizeWeight: number;
+  colorWeight: number;
+  threshold: number;
+  seed: number;
+  guesses: (boolean | null)[];
+  revealed: boolean;
+};
+export const freshGuesses = () => Array<boolean | null>(6).fill(null);
 export function start(): Draft {
-  const weights = { size: 1.25, color: 1 };
   return {
-    version: 1,
-    phase: "weights",
-    weights,
-    biasPoints: biasAt(weights, tray[0].orange),
-    orange: tray[0].orange,
-    pick: null,
+    version: 2,
+    phase: "single",
+    sizeWeight: -1,
+    colorWeight: 1,
+    threshold: 5,
+    seed: 0,
+    guesses: freshGuesses(),
+    revealed: false,
   };
 }
-export function ranking(d: Draft) {
-  return tray.map((f) => ({ fruit: f, ...reading(d, f) })).sort((a, b) => b.z - a.z);
+export const box = (gift: boolean) => (gift ? "礼盒" : "散装");
+export const ordered = (f: Fruit) => Math.abs(f.color - f.size) >= 3;
+export function forward(d: Draft, f: Fruit) {
+  const raw1 = d.sizeWeight * f.size + d.colorWeight * f.color;
+  const raw2 = -raw1;
+  const active = d.phase === "relu" || d.phase === "audit";
+  const first = active ? Math.max(0, raw1) : raw1;
+  const second = d.phase === "single" ? 0 : active ? Math.max(0, raw2) : raw2;
+  const sum = first + second;
+  return { raw1, raw2, first, second, sum, gift: sum >= d.threshold };
 }
-function weight(v: unknown) {
-  return typeof v === "number" && v >= 0.5 && v <= 2 && Number.isInteger(v * 4);
+// The first pair tests the inclusive order threshold. Remaining integer inputs are new to the tray.
+export function batch(seed: number): Fruit[] {
+  const result = [
+    { id: "D", size: 7, color: 4 },
+    { id: "E", size: 7, color: 5 },
+  ];
+  const pool: Fruit[] = [];
+  for (let size = 0; size <= 10; size++)
+    for (let color = 0; color <= 10; color++) {
+      if (![...examples, ...result].some((f) => f.size === size && f.color === color))
+        pool.push({ id: "", size, color });
+    }
+  let state = seed;
+  for (const id of ["F", "G", "H", "I"]) {
+    state = (Math.imul(1664525, state) + 1013904223) >>> 0;
+    const [f] = pool.splice(Math.floor((state / 2 ** 32) * pool.length), 1);
+    result.push({ ...f, id });
+  }
+  return result;
+}
+function integer(n: unknown, min: number, max: number) {
+  return typeof n === "number" && Number.isInteger(n) && n >= min && n <= max;
 }
 export function validDraft(value: unknown): value is Draft {
   const d = value as Partial<Draft> | null;
-  if (
-    d?.version !== 1 ||
-    !Object.hasOwn(phases, d.phase ?? "") ||
-    !d.weights ||
-    !weight(d.weights.size) ||
-    !weight(d.weights.color) ||
-    typeof d.biasPoints !== "number" ||
-    typeof d.orange !== "number" ||
-    !Number.isInteger(d.orange) ||
-    d.orange < 0 ||
-    d.orange > 100 ||
-    !(d.pick === null || d.pick === "A" || d.pick === "B")
-  )
-    return false;
-  const cut = (-d.biasPoints - d.weights.size * sizePercent(tray[0].diameter)) / d.weights.color;
-  return Number.isInteger(cut) && cut >= 5 && cut <= 95;
+  return (
+    d?.version === 2 &&
+    typeof d.phase === "string" &&
+    Object.hasOwn(phases, d.phase) &&
+    integer(d.sizeWeight, -2, 2) &&
+    integer(d.colorWeight, -2, 2) &&
+    integer(d.threshold, -20, 20) &&
+    integer(d.seed, 0, 0xffffffff) &&
+    typeof d.revealed === "boolean" &&
+    Array.isArray(d.guesses) &&
+    d.guesses.length === 6 &&
+    d.guesses.every((g) => g === null || typeof g === "boolean") &&
+    (!d.revealed || (d.phase === "audit" && d.guesses.slice(0, 2).every((g) => g !== null)))
+  );
 }
-export const formatScore = (v: number) => String(Number(v.toFixed(4)));

@@ -17,6 +17,7 @@ function validSnapshot<Draft>(
 export function useLessonNotebook<Draft>(
   start: () => Draft,
   validDraft: (value: unknown) => value is Draft,
+  { draftKey = "draft:v1", runPrefix = "run:" } = {},
 ) {
   const [draft, setDraft] = useState<Draft>(start);
   const [runs, setRuns] = useState<Snapshot<Draft>[]>([]);
@@ -38,8 +39,8 @@ export function useLessonNotebook<Draft>(
           store.current = null;
         });
         return Promise.all([
-          db.get("records", "draft:v1"),
-          db.getAll("records", IDBKeyRange.bound("run:", "run:\uffff")),
+          db.get("records", draftKey),
+          db.getAll("records", IDBKeyRange.bound(runPrefix, `${runPrefix}\uffff`)),
         ]);
       })
       .then((records) => {
@@ -59,18 +60,18 @@ export function useLessonNotebook<Draft>(
       store.current?.close();
       store.current = null;
     };
-  }, [validDraft]);
+  }, [validDraft, draftKey, runPrefix]);
   async function change(next: Draft) {
     setDraft(next);
     try {
       const db = store.current;
       if (!db) {
-        await writeRecord("draft:v1", next);
+        await writeRecord(draftKey, next);
         return;
       }
       // Submit the commit before returning control to a reader who may immediately reload.
       const tx = db.transaction("records", "readwrite");
-      const put = tx.store.put(next, "draft:v1");
+      const put = tx.store.put(next, draftKey);
       tx.commit?.();
       await Promise.all([put, tx.done]);
     } catch {
@@ -85,7 +86,7 @@ export function useLessonNotebook<Draft>(
         at: Date.now(),
         draft,
       };
-      await writeRecord(`run:${run.id}`, run);
+      await writeRecord(`${runPrefix}${run.id}`, run);
       setRuns((prev) => [run, ...prev]);
       setNotice("已保存，可从实验记录载入。");
     } catch {

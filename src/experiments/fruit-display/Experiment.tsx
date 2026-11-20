@@ -9,12 +9,11 @@ import { FruitMap, Trace } from "./Figures";
 import { LegacyRecords } from "./LegacyRecords";
 import lesson from "./lesson.json";
 import {
+  auditSize,
   batch,
-  box,
   type Draft,
   examples,
   forward,
-  freshGuesses,
   ordered,
   phases,
   start,
@@ -54,19 +53,19 @@ function Slider({
 }
 function Workbench({ d, change }: Props) {
   const [index, select] = useState(0);
-  const audit = d.phase === "audit",
-    blind = audit && !d.revealed;
-  const fruit = audit ? batch(d.seed) : examples;
+  const audit = d.phase === "audit";
+  const fruit = audit ? batch(d.seed, d.version) : examples;
   const selected = Math.min(index, fruit.length - 1),
     f = fruit[selected];
   const correct = fruit.filter((v) => forward(d, v).gift === ordered(v)).length;
   function lock() {
     select(0);
     change({
-      ...d,
+      version: 3,
       phase: "audit",
-      guesses: freshGuesses(),
-      revealed: false,
+      sizeWeight: d.sizeWeight,
+      colorWeight: d.colorWeight,
+      threshold: d.threshold,
       seed: crypto.getRandomValues(new Uint32Array(1))[0],
     });
   }
@@ -95,12 +94,22 @@ function Workbench({ d, change }: Props) {
         <section className="panel">
           <div className="panel-heading">
             <h2>{audit ? "新果分布" : "三颗样果的分箱图"}</h2>
-            <small>{blind ? "网络已锁定" : `与订单一致 ${correct} / ${fruit.length}`}</small>
+            {audit ? (
+              <strong className="net-accuracy" role="status">
+                本批正确率 {Math.round((correct / fruit.length) * 100)}%{" "}
+                <small>
+                  （{correct}/{fruit.length}）
+                </small>
+              </strong>
+            ) : (
+              <small>
+                与订单一致 {correct} / {fruit.length}
+              </small>
+            )}
           </div>
-          <FruitMap d={d} fruit={fruit} selected={selected} select={select} blind={blind} />
+          <FruitMap d={d} fruit={fruit} selected={selected} select={select} />
           {(d.phase === "single" || d.phase === "relu") && (
             <div className="net-map-sliders">
-              {" "}
               <Slider
                 name="第一路 · 个头权重"
                 min={-2}
@@ -126,12 +135,9 @@ function Workbench({ d, change }: Props) {
           )}
         </section>
         <div className="net-side">
-          {" "}
-          {!blind && (
-            <section className="panel net-trace-panel">
-              <Trace d={d} f={f} />
-            </section>
-          )}
+          <section className="panel net-trace-panel">
+            <Trace d={d} f={f} />
+          </section>
           <section className="panel net-controls">
             <div className="panel-heading">
               <h2>{phases[d.phase]}</h2>
@@ -141,43 +147,6 @@ function Workbench({ d, change }: Props) {
               </a>
             </div>
             <div className="net-body">
-              {blind && (
-                <div className="net-guesses">
-                  <p>先按订单给这两颗果子选箱。提交后一起看你的答案、机器的去向和店员的标签。</p>
-                  {fruit.slice(0, 2).map((v, i) => (
-                    <div className="net-probe" key={v.id}>
-                      <strong>
-                        {v.id} 果 · 个头 {v.size} / 橙色 {v.color}
-                      </strong>
-                      <div className="net-actions">
-                        {[true, false].map((g) => (
-                          <Button
-                            key={box(g)}
-                            size="sm"
-                            variant={d.guesses[i] === g ? "default" : "outline"}
-                            aria-pressed={d.guesses[i] === g}
-                            aria-label={`${v.id} 果猜${box(g)}`}
-                            onClick={() =>
-                              change({
-                                ...d,
-                                guesses: d.guesses.map((old, j) => (j === i ? g : old)),
-                              })
-                            }
-                          >
-                            {box(g)}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  <Button
-                    disabled={d.guesses.slice(0, 2).includes(null)}
-                    onClick={() => change({ ...d, revealed: true })}
-                  >
-                    核对六颗新果
-                  </Button>
-                </div>
-              )}
               {d.phase === "single" && (
                 <>
                   <p>
@@ -241,7 +210,7 @@ function Workbench({ d, change }: Props) {
                       </Button>
                     </>
                   ) : (
-                    <Button onClick={lock}>锁定网络，验新果</Button>
+                    <Button onClick={lock}>锁定网络，验 {auditSize} 颗新果</Button>
                   )}
                 </>
               )}
@@ -251,16 +220,13 @@ function Workbench({ d, change }: Props) {
                     网络固定在个头权重 {d.sizeWeight}、橙色权重 {d.colorWeight}
                     ，第二路反向，总分门槛为 {d.threshold}。两个中间神经元各自经过 ReLU。
                   </p>
-                  {d.revealed && (
-                    <>
-                      <p className="net-feedback">
-                        {correct === fruit.length
-                          ? "这批新果全部符合订单。"
-                          : "点一颗带虚圈的果子，沿信号条找出漏装或误收的原因。"}
-                      </p>
-                      <Button onClick={lock}>换一批新果</Button>
-                    </>
-                  )}
+
+                  <p className="net-feedback">
+                    {correct === fruit.length
+                      ? "这批新果全部符合订单。"
+                      : "点一颗带虚圈的果子，沿信号条找出漏装或误收的原因。"}
+                  </p>
+                  <Button onClick={lock}>再验 {auditSize} 颗</Button>
                 </>
               )}
               {d.phase !== "single" && (
@@ -271,8 +237,6 @@ function Workbench({ d, change }: Props) {
                     change({
                       ...d,
                       phase: d.phase === "pair" ? "single" : d.phase === "relu" ? "pair" : "relu",
-                      revealed: false,
-                      guesses: freshGuesses(),
                     });
                   }}
                 >

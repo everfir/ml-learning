@@ -12,26 +12,21 @@ export const phases = {
 };
 export type Phase = keyof typeof phases;
 export type Draft = {
-  version: 2;
+  version: 2 | 3;
   phase: Phase;
   sizeWeight: number;
   colorWeight: number;
   threshold: number;
   seed: number;
-  guesses: (boolean | null)[];
-  revealed: boolean;
 };
-export const freshGuesses = () => Array<boolean | null>(6).fill(null);
 export function start(): Draft {
   return {
-    version: 2,
+    version: 3,
     phase: "single",
     sizeWeight: -1,
     colorWeight: 1,
     threshold: 5,
     seed: 0,
-    guesses: freshGuesses(),
-    revealed: false,
   };
 }
 export const box = (gift: boolean) => (gift ? "礼盒" : "散装");
@@ -46,20 +41,26 @@ export function forward(d: Draft, f: Fruit) {
   const sum = first + second;
   return { raw1, raw2, first, second, sum, gift: sum >= d.threshold };
 }
-// The first pair tests the inclusive order threshold. Remaining integer inputs are new to the tray.
-export function batch(seed: number): Fruit[] {
-  const result = [
-    { id: "D", size: 7, color: 4 },
-    { id: "E", size: 7, color: 5 },
-  ];
+export const auditSize = 10;
+export function batch(seed: number, version: Draft["version"] = 3): Fruit[] {
+  // Version 2 records start with two fixed checks and four seeded draws.
+  const result: Fruit[] =
+    version === 2
+      ? [
+          { id: "D", size: 7, color: 4 },
+          { id: "E", size: 7, color: 5 },
+        ]
+      : [];
+  const excluded = [...examples, ...result];
   const pool: Fruit[] = [];
   for (let size = 0; size <= 10; size++)
     for (let color = 0; color <= 10; color++) {
-      if (![...examples, ...result].some((f) => f.size === size && f.color === color))
+      if (!excluded.some((f) => f.size === size && f.color === color))
         pool.push({ id: "", size, color });
     }
   let state = seed;
-  for (const id of ["F", "G", "H", "I"]) {
+  while (result.length < (version === 2 ? 6 : auditSize)) {
+    const id = String.fromCharCode(68 + result.length);
     state = (Math.imul(1664525, state) + 1013904223) >>> 0;
     const [f] = pool.splice(Math.floor((state / 2 ** 32) * pool.length), 1);
     result.push({ ...f, id });
@@ -72,17 +73,12 @@ function integer(n: unknown, min: number, max: number) {
 export function validDraft(value: unknown): value is Draft {
   const d = value as Partial<Draft> | null;
   return (
-    d?.version === 2 &&
+    (d?.version === 2 || d?.version === 3) &&
     typeof d.phase === "string" &&
     Object.hasOwn(phases, d.phase) &&
     integer(d.sizeWeight, -2, 2) &&
     integer(d.colorWeight, -2, 2) &&
     integer(d.threshold, -20, 20) &&
-    integer(d.seed, 0, 0xffffffff) &&
-    typeof d.revealed === "boolean" &&
-    Array.isArray(d.guesses) &&
-    d.guesses.length === 6 &&
-    d.guesses.every((g) => g === null || typeof g === "boolean") &&
-    (!d.revealed || (d.phase === "audit" && d.guesses.slice(0, 2).every((g) => g !== null)))
+    integer(d.seed, 0, 0xffffffff)
   );
 }

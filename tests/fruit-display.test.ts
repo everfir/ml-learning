@@ -29,16 +29,40 @@ test("两路会抵消，ReLU 后可在整个输入网格上实现订单", () => 
       assert.equal(r.gift, ordered(f));
     }
 });
-test("盲测在锁定规则下生成，可重现，门槛不准时边界果会漏装", () => {
-  const d = { ...start(), phase: "audit" as const, seed: 135 };
+test("每批随机验十颗，避开样果，可按种子复现", () => {
+  assert.equal(start().version, 3);
+  const d = { ...start(), phase: "audit" as const, threshold: 3 };
   assert.ok(validDraft(d));
-  assert.ok(!validDraft({ ...d, revealed: true }));
-  const fruits = batch(d.seed);
-  const id = (f: (typeof fruits)[number]) => `${f.size},${f.color}`;
-  assert.equal(new Set([...examples, ...fruits].map(id)).size, 9);
-  assert.deepEqual(fruits, batch(135));
-  assert.notDeepEqual(fruits, batch(136));
-  assert.deepEqual(fruits.slice(0, 2).map(ordered), [true, false]);
-  assert.equal(forward(d, fruits[0]).gift, false);
-  assert.ok(validDraft({ ...d, guesses: [true, false, null, null, null, null], revealed: true }));
+  for (const seed of [0, 135, 136, 0xffffffff]) {
+    const fruit = batch(seed);
+    assert.equal(fruit.length, 10);
+    assert.equal(new Set([...examples, ...fruit].map((f) => `${f.size},${f.color}`)).size, 13);
+    assert.deepEqual(fruit, batch(seed));
+    assert.ok(fruit.every((f) => forward(d, f).gift === ordered(f)));
+  }
+  assert.notDeepEqual(batch(135), batch(136));
+});
+test("旧验收单沿用原六颗样本和成绩", () => {
+  const old = {
+    ...start(),
+    version: 2 as const,
+    phase: "audit" as const,
+    seed: 135,
+    guesses: [true, false, null, null, null, null],
+    revealed: true,
+  };
+  assert.ok(validDraft(old));
+  const fruit = batch(old.seed, old.version);
+  assert.deepEqual(
+    fruit.map((f) => [f.id, f.size, f.color]),
+    [
+      ["D", 7, 4],
+      ["E", 7, 5],
+      ["F", 3, 1],
+      ["G", 5, 8],
+      ["H", 2, 7],
+      ["I", 7, 3],
+    ],
+  );
+  assert.equal(fruit.filter((f) => forward(old, f).gift === ordered(f)).length, 3);
 });

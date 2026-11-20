@@ -12,33 +12,24 @@ type MapProps = {
   fruit: Fruit[];
   selected: number;
   select: (index: number) => void;
-  blind: boolean;
 };
-export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
+export function FruitMap({ d, fruit, selected, select }: MapProps) {
   const [reference, showReference] = useState(false);
-  const list = blind ? fruit.slice(0, 2) : fruit;
-  const f = list[selected] ?? list[0];
-  const guess = d.guesses[selected];
+  const f = fruit[selected];
   const r = forward(d, f);
   return (
     <figure className="net-map">
       <div className="net-map-key">
-        {blind ? (
-          <span>先按坐标判断 D、E 的箱号</span>
-        ) : (
-          <>
-            <span>
-              <i className="net-swatch" />
-              机器礼盒区
-            </span>
-            <span className="net-gift">● 应进礼盒</span>
-            <span className="net-loose">◆ 应走散装</span>
-            <span>
-              <i className="net-ring" />
-              错分
-            </span>
-          </>
-        )}
+        <span>
+          <i className="net-swatch" />
+          机器礼盒区
+        </span>
+        <span className="net-gift">● 应进礼盒</span>
+        <span className="net-loose">◆ 应走散装</span>
+        <span>
+          <i className="net-ring" />
+          错分
+        </span>
       </div>
       <div className="net-map-frame">
         <svg
@@ -47,17 +38,16 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
           role="img"
           aria-label="果子分布图，横轴个头分，纵轴橙色分，选择果子可追踪"
         >
-          <rect x={x(0)} y={y(10)} width="400" height="210" fill={blind ? "#f6f7f7" : "#edf3f1"} />
-          {!blind &&
-            decisionRegions(d).map((poly) => {
-              if (!poly.length) return null;
-              const pts = poly.map((p) => `${x(p.size)},${y(p.color)}`).join(" ");
-              return poly.length === 1 ? (
-                <circle key={pts} cx={x(poly[0].size)} cy={y(poly[0].color)} r="2" fill="#a95a29" />
-              ) : (
-                <polygon key={pts} points={pts} fill="#fae1bc" stroke="#aa632f" strokeWidth="1.6" />
-              );
-            })}
+          <rect x={x(0)} y={y(10)} width="400" height="210" fill="#edf3f1" />
+          {decisionRegions(d).map((poly) => {
+            if (!poly.length) return null;
+            const pts = poly.map((p) => `${x(p.size)},${y(p.color)}`).join(" ");
+            return poly.length === 1 ? (
+              <circle key={pts} cx={x(poly[0].size)} cy={y(poly[0].color)} r="2" fill="#a95a29" />
+            ) : (
+              <polygon key={pts} points={pts} fill="#fae1bc" stroke="#aa632f" strokeWidth="1.6" />
+            );
+          })}
           {ticks.map((t) => (
             <g key={t}>
               <path
@@ -72,7 +62,7 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
               </text>
             </g>
           ))}
-          {!blind && reference && (
+          {reference && (
             <path
               className="net-reference"
               d={`M${x(0)} ${y(orderGap)}L${x(10 - orderGap)} ${y(10)} M${x(orderGap)} ${y(0)}L${x(10)} ${y(10 - orderGap)}`}
@@ -93,7 +83,7 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
           <text x="248" y="284" textAnchor="middle">
             个头（分）
           </text>
-          {list.map((p) => {
+          {fruit.map((p) => {
             const chosen = p.id === f.id,
               correct = ordered(p) === forward(d, p).gift;
             return (
@@ -105,9 +95,9 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
                 <title>{`${p.id} 果（${p.size}，${p.color}）`}</title>
                 <circle r="16" fill="transparent" />
                 {chosen && <circle className="net-selected" r="14" />}
-                {!blind && !correct && <circle className="net-error-ring" r="18" />}
-                {blind || ordered(p) ? (
-                  <circle r="10" fill={blind ? "#485c65" : "#9e481a"} />
+                {!correct && <circle className="net-error-ring" r="18" />}
+                {ordered(p) ? (
+                  <circle r="10" fill="#9e481a" />
                 ) : (
                   <path d="M0 -13 13 0 0 13 -13 0Z" fill="#22675e" />
                 )}
@@ -118,7 +108,7 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
             );
           })}
         </svg>
-        {list.map((p, i) => (
+        {fruit.map((p, i) => (
           <button
             type="button"
             key={p.id}
@@ -131,32 +121,26 @@ export function FruitMap({ d, fruit, selected, select, blind }: MapProps) {
           />
         ))}
       </div>
-      {!blind && (
-        <div className="net-map-note">
-          <label>
-            <input
-              type="checkbox"
-              checked={reference}
-              onChange={(e) => showReference(e.target.checked)}
-            />{" "}
-            叠加订单边界（虚线）
-          </label>
-        </div>
-      )}
+      <div className="net-map-note">
+        <label>
+          <input
+            type="checkbox"
+            checked={reference}
+            onChange={(e) => showReference(e.target.checked)}
+          />{" "}
+          叠加订单边界（虚线）
+        </label>
+      </div>
       <figcaption className="net-reading">
         <strong>{f.id} 果</strong>
         <span>
           个头 {f.size} · 橙色 {f.color}
         </span>
-        {!blind && (
-          <>
-            <span>订单：{box(ordered(f))}</span>
-            <b className={r.gift === ordered(f) ? "" : "net-miss"}>
-              机器：{box(r.gift)} {r.gift === ordered(f) ? "✓" : "×"}
-            </b>
-            {d.phase === "audit" && typeof guess === "boolean" && <span>你猜：{box(guess)}</span>}
-          </>
-        )}
+
+        <span>订单：{box(ordered(f))}</span>
+        <b className={r.gift === ordered(f) ? "" : "net-miss"}>
+          机器：{box(r.gift)} {r.gift === ordered(f) ? "✓" : "×"}
+        </b>
       </figcaption>
     </figure>
   );

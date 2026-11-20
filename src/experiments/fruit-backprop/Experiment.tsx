@@ -2,7 +2,6 @@ import { BookOpen, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ordered } from "@/shared/data/gift-order";
 import { drawAudit, training } from "@/shared/data/training-tray";
-import { FruitMap } from "@/shared/fruit/FruitMap";
 import { TrayAudit } from "@/shared/fruit/TrayAudit";
 import { LabShell } from "@/shared/LabShell";
 import { guideHref, lessonHref } from "@/shared/lesson-route";
@@ -12,6 +11,7 @@ import { documents } from "./documents";
 import lesson from "./lesson.json";
 import { type Draft, forward, learn, rates, start, validDraft } from "./model";
 import { NetworkDiagram } from "./NetworkDiagram";
+import { OutputSurface } from "./OutputSurface";
 import { History } from "./Trace";
 import "./style.css";
 
@@ -88,7 +88,7 @@ function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
             </Button>
           </div>
           <NetworkDiagram
-            key={`${restart}-${f.id}-${d.steps}`}
+            key={`${restart}-${f.id}-${d.steps}-${running || !!batch}`}
             net={d.net}
             previous={previous}
             f={f}
@@ -103,6 +103,7 @@ function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
               key={d.seed}
               fruit={batch}
               predictsGift={(f) => forward(d.net, f).gift}
+              renderPlot={(visible) => <OutputSurface net={d.net} fruit={visible} />}
               heading="新果验收"
               summary={`锁定于第 ${d.steps} 步`}
               animate={animate === d.seed}
@@ -112,13 +113,15 @@ function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
           ) : (
             <section className="panel">
               <div className="panel-heading">
-                <h2>训练盘的分箱图</h2>
+                <h2>模型的输出曲面</h2>
                 <span>分对 {hits} / 12</span>
+                <Guide id="surface" text="读曲面" />
               </div>
-              <FruitMap
+              <OutputSurface
+                net={d.net}
+                previous={previous}
                 fruit={training}
-                selected={f.id}
-                predictsGift={(v) => forward(d.net, v).gift}
+                selected={f}
                 onSelect={running ? undefined : (selected) => change({ ...d, selected })}
               />
             </section>

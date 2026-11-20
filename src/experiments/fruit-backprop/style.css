@@ -191,3 +191,77 @@
     font-size: 15px;
   }
 }
+
+.bp-surface {
+  margin: 0;
+  padding: 10px 16px 14px;
+}
+
+.bp-surface-tools,
+.bp-surface-tools label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bp-surface-tools {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.bp-surface-tools input {
+  accent-color: #28675b;
+}
+
+.bp-surface-tools input[type="range"] {
+  width: 72px;
+}
+
+.bp-surface-frame {
+  position: relative;
+}
+
+.bp-surface-frame svg {
+  width: 100%;
+  display: block;
+}
+
+.bp-surface-frame text {
+  font: 12px var(--sans, sans-serif);
+  fill: var(--muted);
+}
+
+.bp-floor {
+  stroke: #9aaea7;
+  fill: none;
+}
+
+.bp-weave {
+  fill: none;
+  stroke: #315c54;
+  stroke-width: 0.6;
+  stroke-opacity: 0.24;
+}
+
+.bp-surface-frame .bp-picked {
+  font-weight: 700;
+  fill: var(--ink);
+  stroke: white;
+  stroke-width: 3px;
+  paint-order: stroke;
+}
+
+.bp-surface figcaption {
+  display: grid;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.bp-surface figcaption b,
+.bp-surface figcaption strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}

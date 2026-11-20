@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { type Fruit, ordered } from "../data/gift-order";
 import { guideHref } from "../lesson-route";
 import { Button } from "../ui/button";
@@ -8,6 +8,7 @@ type Props = {
   fruit: Fruit[];
   predictsGift: (f: Fruit) => boolean;
   animate: boolean;
+  renderPlot?: (visible: Fruit[]) => ReactNode;
   heading: string;
   summary: string;
   again: () => void;
@@ -16,6 +17,7 @@ type Props = {
 export function TrayAudit({
   fruit,
   predictsGift,
+  renderPlot,
   animate,
   heading,
   summary,
@@ -53,7 +55,7 @@ export function TrayAudit({
         <span>分对 {hits} 颗</span>
       </div>
       <progress className="tray-progress" aria-label="新果验收进度" value={count} max={total} />
-      <FruitMap predictsGift={predictsGift} fruit={visible} />
+      {renderPlot ? renderPlot(visible) : <FruitMap predictsGift={predictsGift} fruit={visible} />}
       <div className="tray-pad tray-actions">
         {done ? (
           <Button onClick={again}>再验 100 颗</Button>

@@ -1,4 +1,5 @@
-import { useId, useState } from "react";
+import { Pause, Play } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { box, type Fruit, ordered } from "@/shared/data/gift-order";
 import { guideHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
@@ -69,6 +70,28 @@ export function NetworkDiagram({
 }) {
   const [stage, setStage] = useState(previous ? 5 : 0);
   const [replay, setReplay] = useState(!!previous);
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing || blocked) return;
+    const timer = window.setTimeout(() => {
+      if (stage === 4) {
+        setPlaying(false);
+        onApply();
+      } else {
+        setStage(stage + 1);
+      }
+    }, 200);
+    return () => window.clearTimeout(timer);
+  }, [playing, blocked, stage, onApply]);
+
+  function togglePlayback() {
+    if (!playing && replay) {
+      setReplay(false);
+      setStage(0);
+    }
+    setPlaying(!playing);
+  }
+
   const old = replay && previous ? previous : net;
   const r = forward(old, f),
     after = forward(net, f),
@@ -241,11 +264,19 @@ export function NetworkDiagram({
         {stage === 4 && !replay && ` 点击更新，将各权重减去 ${rate} × 对应梯度。`}
       </p>
       <div className="bp-nav">
-        <Button variant="outline" disabled={!stage || blocked} onClick={() => setStage(stage - 1)}>
+        <Button
+          variant="outline"
+          disabled={!stage || blocked || playing}
+          onClick={() => setStage(stage - 1)}
+        >
           上一步
         </Button>
-        <Button disabled={blocked} onClick={next}>
+        <Button disabled={blocked || playing} onClick={next}>
           {stage === 4 && replay ? "重看更新结果" : nextLabels[stage]}
+        </Button>
+        <Button variant="outline" disabled={blocked} onClick={togglePlayback}>
+          {playing ? <Pause /> : <Play />}
+          {playing ? "暂停连续学习" : "连续学这颗"}
         </Button>
       </div>
       <div className="bp-concepts">

@@ -5,7 +5,7 @@ import { guideHref, lessonHref } from "@/shared/lesson-route";
 import { Button } from "@/shared/ui/button";
 import { useLessonNotebook } from "@/shared/useLessonNotebook";
 import { documents } from "./documents";
-import { Trace } from "./Figures";
+import { FruitMap, Trace } from "./Figures";
 import { LegacyRecords } from "./LegacyRecords";
 import lesson from "./lesson.json";
 import {
@@ -94,225 +94,194 @@ function Workbench({ d, change }: Props) {
       <div className="net-columns">
         <section className="panel">
           <div className="panel-heading">
-            <h2>{audit ? "新果验收单" : "店员留下的三颗样果"}</h2>
+            <h2>{audit ? "新果分布" : "三颗样果的分箱图"}</h2>
             <small>{blind ? "网络已锁定" : `与订单一致 ${correct} / ${fruit.length}`}</small>
           </div>
-          {blind ? (
-            <div className="net-body">
-              <p>先按订单给这两颗果子选箱。提交后一起看你的答案、机器的去向和店员的标签。</p>
-              {fruit.slice(0, 2).map((v, i) => (
-                <div className="net-probe" key={v.id}>
-                  <strong>
-                    {v.id} 果 · 个头 {v.size} / 橙色 {v.color}
-                  </strong>
-                  <div className="net-actions">
-                    {[true, false].map((g) => (
-                      <Button
-                        key={box(g)}
-                        size="sm"
-                        variant={d.guesses[i] === g ? "default" : "outline"}
-                        aria-pressed={d.guesses[i] === g}
-                        aria-label={`${v.id} 果猜${box(g)}`}
-                        onClick={() =>
-                          change({ ...d, guesses: d.guesses.map((old, j) => (j === i ? g : old)) })
-                        }
-                      >
-                        {box(g)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <Button
-                disabled={d.guesses.slice(0, 2).includes(null)}
-                onClick={() => change({ ...d, revealed: true })}
-              >
-                核对六颗新果
-              </Button>
+          <FruitMap d={d} fruit={fruit} selected={selected} select={select} blind={blind} />
+          {(d.phase === "single" || d.phase === "relu") && (
+            <div className="net-map-sliders">
+              {" "}
+              <Slider
+                name="第一路 · 个头权重"
+                min={-2}
+                max={2}
+                n={d.sizeWeight}
+                edit={(sizeWeight) => change({ ...d, sizeWeight })}
+              />
+              <Slider
+                name="第一路 · 橙色权重"
+                min={-2}
+                max={2}
+                n={d.colorWeight}
+                edit={(colorWeight) => change({ ...d, colorWeight })}
+              />
+              <Slider
+                name="进礼盒的总分门槛"
+                min={-20}
+                max={20}
+                n={d.threshold}
+                edit={(threshold) => change({ ...d, threshold })}
+              />
             </div>
-          ) : (
-            <>
-              <table className="net-table">
-                <thead>
-                  <tr>
-                    {["样果", "个头", "橙色", "订单", "机器", ...(audit ? ["你猜"] : [])].map(
-                      (h) => (
-                        <th key={h}>{h}</th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {fruit.map((v, i) => {
-                    const actual = forward(d, v).gift;
-                    return (
-                      <tr key={v.id} data-selected={i === selected || undefined}>
-                        <th scope="row">
-                          <button
-                            type="button"
-                            aria-pressed={i === selected}
-                            aria-label={`追踪 ${v.id} 果`}
-                            onClick={() => select(i)}
-                          >
-                            {v.id} 果
-                          </button>
-                        </th>
-                        <td>{v.size}</td>
-                        <td>{v.color}</td>
-                        <td>{box(ordered(v))}</td>
-                        <td className={actual === ordered(v) ? "" : "net-miss"}>
-                          {box(actual)} {actual === ordered(v) ? "✓" : "×"}
-                        </td>
-                        {audit && (
-                          <td>
-                            {typeof d.guesses[i] === "boolean" ? box(d.guesses[i] === true) : "—"}
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <div className="net-body">
-                <Trace d={d} f={f} />
-                <p>点样果名字，可以沿着它的计算路径核对每一分。</p>
-              </div>
-            </>
           )}
         </section>
-        <section className="panel">
-          <div className="panel-heading">
-            <h2>{phases[d.phase]}</h2>
-            <a className="net-guide" href={guideHref("workbench", guide)}>
-              <BookOpen size={14} />
-              对照讲解
-            </a>
-          </div>
-          <div className="net-body">
-            {d.phase === "single" && (
-              <>
-                <p>
-                  <strong>让 A、B 都进礼盒，同时留下 C。</strong>{" "}
-                  现在机器给颜色加分、给个头扣分。先交换两项权重，看原先分对和分错的各是哪颗。
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    change({ ...d, sizeWeight: d.colorWeight, colorWeight: d.sizeWeight })
-                  }
-                >
-                  交换两项权重
-                </Button>
-              </>
-            )}
-            {d.phase === "pair" && (
-              <>
-                <p>
-                  你刚加了一路，沿用同一颗果子的读数，权重与第一路恰好相反。先把两个原始分直接相加。
-                </p>
-                <div className="net-feedback">
-                  检查 A，再检查 B：每一路都给出了线索，可是两路的合计总是 0。
+        <div className="net-side">
+          {" "}
+          {!blind && (
+            <section className="panel net-trace-panel">
+              <Trace d={d} f={f} />
+            </section>
+          )}
+          <section className="panel net-controls">
+            <div className="panel-heading">
+              <h2>{phases[d.phase]}</h2>
+              <a className="net-guide" href={guideHref("workbench", guide)}>
+                <BookOpen size={14} />
+                对照讲解
+              </a>
+            </div>
+            <div className="net-body">
+              {blind && (
+                <div className="net-guesses">
+                  <p>先按订单给这两颗果子选箱。提交后一起看你的答案、机器的去向和店员的标签。</p>
+                  {fruit.slice(0, 2).map((v, i) => (
+                    <div className="net-probe" key={v.id}>
+                      <strong>
+                        {v.id} 果 · 个头 {v.size} / 橙色 {v.color}
+                      </strong>
+                      <div className="net-actions">
+                        {[true, false].map((g) => (
+                          <Button
+                            key={box(g)}
+                            size="sm"
+                            variant={d.guesses[i] === g ? "default" : "outline"}
+                            aria-pressed={d.guesses[i] === g}
+                            aria-label={`${v.id} 果猜${box(g)}`}
+                            onClick={() =>
+                              change({
+                                ...d,
+                                guesses: d.guesses.map((old, j) => (j === i ? g : old)),
+                              })
+                            }
+                          >
+                            {box(g)}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    disabled={d.guesses.slice(0, 2).includes(null)}
+                    onClick={() => change({ ...d, revealed: true })}
+                  >
+                    核对六颗新果
+                  </Button>
                 </div>
-                <p>如果每一路只报告自己找到的正向线索，A 的正分还能留下吗？</p>
-                <Button onClick={() => change({ ...d, phase: "relu" })}>
-                  给两路接上「负分记 0」
-                </Button>
-              </>
-            )}
-            {d.phase === "relu" && (
-              <>
-                <p>
-                  <strong>负分记 0，这道开关叫 ReLU。</strong> 看 A 和 B 各靠哪一路拿分，再检查
-                  C。把总分门槛调到符合订单的位置。
-                </p>
-                <p className="net-feedback" role="status">
-                  {correct === 3
-                    ? "三颗样果全对。差 2 分和差 3 分的新果也能分清吗？"
-                    : "还有样果走错。可以用「颜色减个头」对准第一条线索，再检查门槛。"}
-                </p>
-              </>
-            )}
-            {(d.phase === "single" || d.phase === "relu") && (
-              <>
-                <Slider
-                  name="第一路 · 个头权重"
-                  min={-2}
-                  max={2}
-                  n={d.sizeWeight}
-                  edit={(sizeWeight) => change({ ...d, sizeWeight })}
-                />
-                <Slider
-                  name="第一路 · 橙色权重"
-                  min={-2}
-                  max={2}
-                  n={d.colorWeight}
-                  edit={(colorWeight) => change({ ...d, colorWeight })}
-                />
-                <Slider
-                  name="进礼盒的总分门槛"
-                  min={-20}
-                  max={20}
-                  n={d.threshold}
-                  edit={(threshold) => change({ ...d, threshold })}
-                />
+              )}
+              {d.phase === "single" && (
+                <>
+                  <p>
+                    <strong>让 A、B 都进礼盒，同时留下 C。</strong>{" "}
+                    先交换权重，看浅橙色区域能盖住哪颗果。再拖动门槛，试着同时收下两个圆点。
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      change({ ...d, sizeWeight: d.colorWeight, colorWeight: d.sizeWeight })
+                    }
+                  >
+                    交换两项权重
+                  </Button>
+                </>
+              )}
+              {d.phase === "pair" && (
+                <>
+                  <p>
+                    你刚加了一路，沿用同一颗果子的读数，权重与第一路恰好相反。先把两个原始分直接相加。
+                  </p>
+                  <div className="net-feedback">
+                    点 A，再点 B。两路的色条一样长、方向相反，合计停在 0。
+                  </div>
+                  <p>如果每一路只报告自己找到的正向线索，A 的正分还能留下吗？</p>
+                  <Button onClick={() => change({ ...d, phase: "relu" })}>
+                    给两路接上「负分记 0」
+                  </Button>
+                </>
+              )}
+              {d.phase === "relu" && (
+                <>
+                  <p>
+                    <strong>负分记 0，这道开关叫 ReLU。</strong> 看 A 和 B 各靠哪一路拿分，再检查
+                    C。把总分门槛调到符合订单的位置。
+                  </p>
+                  <p className="net-feedback" role="status">
+                    {correct === 3
+                      ? "三颗样果全对。差 2 分和差 3 分的新果也能分清吗？"
+                      : "还有样果走错。可以用「颜色减个头」对准第一条线索，再检查门槛。"}
+                  </p>
+                </>
+              )}
+              {(d.phase === "single" || d.phase === "relu") && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => change({ ...d, sizeWeight: -1, colorWeight: 1 })}
+                  >
+                    试「颜色减个头」
+                  </Button>
+                  {d.phase === "single" ? (
+                    <>
+                      <p>
+                        三颗总分依次为 {examples.map((v) => forward(d, v).sum).join("、")}。C
+                        的两项读数都正好在 A、B 中间，它的分数也总在中间。
+                      </p>
+                      <Button onClick={() => change({ ...d, phase: "pair" })}>
+                        保留第一路，添一路反向打分
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={lock}>锁定网络，验新果</Button>
+                  )}
+                </>
+              )}
+              {audit && (
+                <>
+                  <p>
+                    网络固定在个头权重 {d.sizeWeight}、橙色权重 {d.colorWeight}
+                    ，第二路反向，总分门槛为 {d.threshold}。两个中间神经元各自经过 ReLU。
+                  </p>
+                  {d.revealed && (
+                    <>
+                      <p className="net-feedback">
+                        {correct === fruit.length
+                          ? "这批新果全部符合订单。"
+                          : "点一颗带虚圈的果子，沿信号条找出漏装或误收的原因。"}
+                      </p>
+                      <Button onClick={lock}>换一批新果</Button>
+                    </>
+                  )}
+                </>
+              )}
+              {d.phase !== "single" && (
                 <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => change({ ...d, sizeWeight: -1, colorWeight: 1 })}
+                  variant="ghost"
+                  onClick={() => {
+                    select(0);
+                    change({
+                      ...d,
+                      phase: d.phase === "pair" ? "single" : d.phase === "relu" ? "pair" : "relu",
+                      revealed: false,
+                      guesses: freshGuesses(),
+                    });
+                  }}
                 >
-                  试「颜色减个头」
+                  {audit ? "解锁并调参" : "回到上一步"}
                 </Button>
-                {d.phase === "single" ? (
-                  <>
-                    <p>
-                      三颗总分依次为 {examples.map((v) => forward(d, v).sum).join("、")}。C
-                      的两项读数都正好在 A、B 中间，它的分数也总在中间。
-                    </p>
-                    <Button onClick={() => change({ ...d, phase: "pair" })}>
-                      保留第一路，添一路反向打分
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={lock}>锁定网络，验新果</Button>
-                )}
-              </>
-            )}
-            {audit && (
-              <>
-                <p>
-                  网络固定在个头权重 {d.sizeWeight}、橙色权重 {d.colorWeight}
-                  ，第二路反向，总分门槛为 {d.threshold}。两个中间神经元各自经过 ReLU。
-                </p>
-                {d.revealed && (
-                  <>
-                    <p className="net-feedback">
-                      {correct === fruit.length
-                        ? "这批新果全部符合订单。"
-                        : "在验收单中点一颗带 × 的果子，找出分歧发生在哪一步。"}
-                    </p>
-                    <Button onClick={lock}>换一批新果</Button>
-                  </>
-                )}
-              </>
-            )}
-            {d.phase !== "single" && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  select(0);
-                  change({
-                    ...d,
-                    phase: d.phase === "pair" ? "single" : d.phase === "relu" ? "pair" : "relu",
-                    revealed: false,
-                    guesses: freshGuesses(),
-                  });
-                }}
-              >
-                {audit ? "解锁并调参" : "回到上一步"}
-              </Button>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
     </>
   );

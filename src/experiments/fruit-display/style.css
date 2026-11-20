@@ -13,7 +13,6 @@
 .net-stages,
 .net-actions,
 .net-mission,
-.net-input,
 .net-record,
 .net-guide {
   display: flex;
@@ -70,98 +69,200 @@
   text-decoration: underline;
 }
 
-.net-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
-  text-align: left;
+.net-side {
+  display: grid;
+  gap: 16px;
+  align-content: start;
 }
 
-.net-table th,
-.net-table td {
-  padding: 7px 10px;
-  border-bottom: 1px solid var(--border);
+.net-map-sliders {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
 }
 
-.net-table thead {
+.net-map-key,
+.net-reading,
+.net-trace figcaption,
+.net-trace-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px 16px;
+  flex-wrap: wrap;
+}
+
+.net-map-key {
+  padding: 12px 16px 0;
+  font-size: 13px;
   color: var(--muted);
-  background: var(--surface);
 }
 
-.net-table button {
-  color: #205c59;
-  text-decoration: underline;
+.net-map-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.net-swatch {
+  width: 16px;
+  height: 10px;
+  background: #fae1bc;
+  border: 1px solid #aa632f;
+}
+
+.net-ring {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px dashed #a72c42;
+}
+
+.net-gift {
+  color: #934115;
+}
+
+.net-loose {
+  color: #22675e;
+}
+
+.net-space,
+.net-signal {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.net-space text,
+.net-signal text {
+  fill: var(--muted);
+  font: 12px var(--mono);
+}
+
+.net-space .net-letter {
+  fill: white;
+  font: bold 12px var(--mono);
+  pointer-events: none;
+}
+
+.net-map-frame {
+  position: relative;
+}
+
+.net-point-hit {
+  position: absolute;
+  width: 5.5%;
+  min-width: 24px;
+  height: auto;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
   cursor: pointer;
-  padding: 3px;
+  background: transparent;
 }
 
-.net-table tr[data-selected] {
-  background: #edf5f3;
+.net-point-hit:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.net-selected {
+  fill: none;
+  stroke: #243a40;
+  stroke-width: 1.7;
+}
+
+.net-error-ring {
+  fill: none;
+  stroke: #a72c42;
+  stroke-width: 1.8;
+  stroke-dasharray: 3 2;
+}
+
+.net-grid {
+  fill: none;
+  stroke: #b9c6c2;
+  stroke-dasharray: 2 4;
+  stroke-width: 0.7;
+}
+
+.net-reference {
+  fill: none;
+  stroke: #3d5754;
+  stroke-width: 1.8;
+  stroke-dasharray: 6 4;
+}
+
+.net-midline {
+  stroke: #778382;
+  stroke-dasharray: 2 3;
+}
+
+.net-map-note {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 4px 16px 10px;
+}
+
+.net-map-note input {
+  vertical-align: middle;
+  accent-color: #287469;
+}
+
+.net-reading {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
 }
 
 .net-miss {
-  color: #97401c;
-  font-weight: 650;
+  color: #9c343d;
 }
 
 .net-trace figcaption {
-  font-weight: 650;
-  margin-bottom: 9px;
+  justify-content: space-between;
+  padding: 12px 16px 3px;
 }
 
-.net-input,
-.net-output {
-  padding: 11px 13px;
-  background: var(--surface);
-  border-radius: 4px;
-  font-size: 14px;
+.net-trace figcaption span,
+.net-trace-foot details {
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.net-paths {
+.net-signal {
+  max-height: 152px;
+}
+
+.net-ghost {
+  fill: #f1efeb;
+  stroke: #787773;
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+
+.net-trace-foot {
+  padding: 7px 16px 13px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.net-trace-foot summary {
+  cursor: pointer;
+}
+
+.net-trace-foot p {
+  margin-top: 5px;
+}
+
+.net-guesses {
   display: grid;
   gap: 9px;
-  margin: 7px 0;
 }
 
-.net-paths.paired {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.net-path {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  padding: 9px 11px;
-  border-left: 3px solid #357970;
-  background: #edf5f3;
-}
-
-.net-path:nth-child(2) {
-  border-color: #ad5828;
-  background: #fcf3e7;
-}
-
-.net-path small,
-.net-output small {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.net-path strong,
-.net-output b,
-.net-slider output {
-  font-family: var(--mono);
-}
-
-.net-path .net-activation {
-  font-weight: 650;
-  color: var(--ink);
-}
-
-.net-output {
-  display: grid;
-  gap: 3px;
+.net-guesses > button {
+  justify-self: start;
 }
 
 .net-slider {
@@ -216,12 +317,35 @@
     padding: 14px;
   }
 
-  .net-table th,
-  .net-table td {
-    padding: 6px 4px;
+  .net-map-key {
+    gap: 5px 10px;
+    padding-inline: 10px;
   }
 
   .net-stages {
     font-size: 13px;
+  }
+}
+
+@media (width <= 520px) {
+  .net-map-sliders {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .net-map-sliders .net-slider {
+    grid-template-columns: minmax(8em, 1fr) 1fr 2em;
+    align-items: center;
+  }
+
+  .net-map-sliders .net-slider input {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .net-map-sliders output {
+    grid-column: 3;
+    grid-row: 1;
+    text-align: right;
   }
 }

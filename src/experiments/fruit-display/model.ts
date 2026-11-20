@@ -35,7 +35,8 @@ export function start(): Draft {
   };
 }
 export const box = (gift: boolean) => (gift ? "礼盒" : "散装");
-export const ordered = (f: Fruit) => Math.abs(f.color - f.size) >= 3;
+export const orderGap = 3;
+export const ordered = (f: Fruit) => Math.abs(f.color - f.size) >= orderGap;
 export function forward(d: Draft, f: Fruit) {
   const raw1 = d.sizeWeight * f.size + d.colorWeight * f.color;
   const raw2 = -raw1;

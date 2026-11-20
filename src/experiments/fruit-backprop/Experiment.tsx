@@ -11,7 +11,8 @@ import { useLessonNotebook } from "@/shared/useLessonNotebook";
 import { documents } from "./documents";
 import lesson from "./lesson.json";
 import { type Draft, forward, learn, rates, start, validDraft } from "./model";
-import { History, NetworkTrace } from "./Trace";
+import { NetworkDiagram } from "./NetworkDiagram";
+import { History } from "./Trace";
 import "./style.css";
 
 function Guide({ id, text }: { id: string; text: string }) {
@@ -25,6 +26,13 @@ function Guide({ id, text }: { id: string; text: string }) {
 function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
   const [end, setEnd] = useState<number | null>(null);
   const [animate, setAnimate] = useState<number | null>(null);
+  const [restart, setRestart] = useState(0);
+  function reset() {
+    setEnd(null);
+    setAnimate(null);
+    setRestart((n) => n + 1);
+    change(start());
+  }
   const running = end !== null && d.traySteps < end && d.seed === null;
   useEffect(() => {
     if (!running) return;
@@ -48,9 +56,9 @@ function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
         {d.seed !== null
           ? "网络已锁定。观察同一组权重在新果上的表现。"
           : d.steps === 0
-            ? "A 应进礼盒，却被送去散装。点一次「学这颗」，看店员的反馈改变了哪一路。"
+            ? "A 应进礼盒，却被送去散装。从两项输入沿箭头往下算，再沿原路往回看店员的反馈。"
             : d.steps === 1 && d.selected === "A"
-              ? "对照两路权重，再选 B 学一次：这回反馈会走哪条路？"
+              ? "对照两路权重，再选 B 走一次计算图：这回反馈会走哪条路？"
               : "对照刚学的这颗与整盘损失。可以暂停轮训，沿两路查看这一步的更新。"}
       </p>
       <div className="bp-columns">
@@ -75,11 +83,19 @@ function Workbench({ d, change }: { d: Draft; change: (next: Draft) => void }) {
                 ))}
               </select>
             </label>
-            <Button disabled={running || !!batch} onClick={() => change(learn(d, false))}>
-              学这颗
+            <Button variant="outline" onClick={reset}>
+              重新开始训练
             </Button>
           </div>
-          <NetworkTrace net={d.net} previous={previous} f={f} />
+          <NetworkDiagram
+            key={`${restart}-${f.id}-${d.steps}`}
+            net={d.net}
+            previous={previous}
+            f={f}
+            rate={d.rate}
+            blocked={running || !!batch}
+            onApply={() => change(learn(d, false))}
+          />
         </section>
         <div className="bp-side">
           {batch ? (

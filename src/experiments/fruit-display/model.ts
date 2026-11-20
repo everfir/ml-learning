@@ -1,9 +1,6 @@
-export type Fruit = { id: string; size: number; color: number };
-export const examples: Fruit[] = [
-  { id: "A", size: 2, color: 8 },
-  { id: "B", size: 8, color: 2 },
-  { id: "C", size: 5, color: 5 },
-];
+import { drawFruit, examples, type Fruit } from "../../shared/data/gift-order.ts";
+
+export { box, examples, type Fruit, ordered, orderGap } from "../../shared/data/gift-order.ts";
 export const phases = {
   single: "试一个打分器",
   pair: "接第二路",
@@ -29,9 +26,6 @@ export function start(): Draft {
     seed: 0,
   };
 }
-export const box = (gift: boolean) => (gift ? "礼盒" : "散装");
-export const orderGap = 3;
-export const ordered = (f: Fruit) => Math.abs(f.color - f.size) >= orderGap;
 export function forward(d: Draft, f: Fruit) {
   const raw1 = d.sizeWeight * f.size + d.colorWeight * f.color;
   const raw2 = -raw1;
@@ -51,21 +45,15 @@ export function batch(seed: number, version: Draft["version"] = 3): Fruit[] {
           { id: "E", size: 7, color: 5 },
         ]
       : [];
-  const excluded = [...examples, ...result];
-  const pool: Fruit[] = [];
-  for (let size = 0; size <= 10; size++)
-    for (let color = 0; color <= 10; color++) {
-      if (!excluded.some((f) => f.size === size && f.color === color))
-        pool.push({ id: "", size, color });
-    }
-  let state = seed;
-  while (result.length < (version === 2 ? 6 : auditSize)) {
-    const id = String.fromCharCode(68 + result.length);
-    state = (Math.imul(1664525, state) + 1013904223) >>> 0;
-    const [f] = pool.splice(Math.floor((state / 2 ** 32) * pool.length), 1);
-    result.push({ ...f, id });
-  }
-  return result;
+  return [
+    ...result,
+    ...drawFruit(
+      seed,
+      [...examples, ...result],
+      version === 2 ? 4 : auditSize,
+      version === 2 ? "F" : "D",
+    ),
+  ];
 }
 function integer(n: unknown, min: number, max: number) {
   return typeof n === "number" && Number.isInteger(n) && n >= min && n <= max;
